@@ -29,5 +29,5 @@ def input_as_multigrids(lines, row):
     return grids
 
 def input_as_grid(filename: str):
-    string_lines = input_as_lines(filename)
+    lines = input_as_lines(filename)
     return [[int(x) for x in line.strip()] for line in lines]
