@@ -18,7 +18,7 @@ def input_as_ints(filename: str) -> List[int]:
     return list(map(line_as_int, lines))
 
 
-def input_as_grid(lines, row):
+def input_as_multigrids(lines, row):
     grids = []
     for y in range(0, int(len(lines) / (row + 1) + 1) - 1):
         grid = []
@@ -27,3 +27,7 @@ def input_as_grid(lines, row):
         grids.append(grid)
 
     return grids
+
+def input_as_grid(filename: str):
+    lines = input_as_lines(filename)
+    return [[int(x) for x in line.strip()] for line in lines]

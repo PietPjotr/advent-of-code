@@ -1,3 +1,0 @@
-datastructuren code: 945963-0b447e6b
-eigen code:          1637634-20211201-9b873d4f
-priate leaderboard:  1637634-e69e2479
