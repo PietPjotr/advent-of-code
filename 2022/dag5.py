@@ -22,7 +22,7 @@ def main():
     # deel1(lines)
 
 
-    #creation of the starting stacks
+    # creation of the starting stacks
     grid = []
     for line in lines:
         if line == '':
@@ -49,16 +49,15 @@ def main():
         to = int(data[5]) - 1
 
         if amount == 1:
-            move(all[int(fro)], all[int(to)])
+            move(all[fro], all[to])
         # only added for part 2
         elif amount > 1:
-            move_multiple(all[int(fro)], all[int(to)], amount)
+            move_multiple(all[fro], all[to], amount)
 
     # final result string
     result = ''
     for stack in all:
-        if stack:
-            result += stack[-1]
+        result += stack[-1]
 
     print(result)
 
