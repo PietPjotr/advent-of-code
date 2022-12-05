@@ -67,10 +67,8 @@ def eval2(a, x):
 
 
 def main():
-    # lines = parser.input_as_string('inputs/.txt')
+
     lines = parser.input_as_lines('inputs/dag2.txt')
-    # lines = parser.input_as_ints('inputs/.txt')
-    # lines = parser.input_as_grid('inputs/.txt')
     deel1(lines)
     deel2(lines)
 

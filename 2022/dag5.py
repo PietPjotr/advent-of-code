@@ -1,6 +1,8 @@
 import parser
 import numpy as np
 
+part = 2
+
 
 def move(s1, s2):
     s2.append(s1.pop(-1))
@@ -15,12 +17,7 @@ def move_multiple(s1, s2, n):
 
 
 def main():
-    # lines = parser.input_as_string('inputs/.txt')
     lines = parser.input_as_lines('inputs/dag5.txt')
-    # lines = parser.input_as_ints('inputs/.txt')
-    # lines = parser.input_as_grid('inputs/.txt')
-    # deel1(lines)
-
 
     # creation of the starting stacks
     grid = []
@@ -30,7 +27,6 @@ def main():
         row = [char for i, char in enumerate(line) if (i - 1) % 4 == 0]
         grid.append(row)
 
-
     grid.pop(-1)
     grid = np.transpose(grid)
     res = []
@@ -38,7 +34,7 @@ def main():
         new = list(filter(lambda x: x != ' ', row))
         res.append(new[::-1])
 
-    all = res
+    stacks = res
 
     # actual loop over the commands
     s = 10
@@ -48,15 +44,21 @@ def main():
         fro = int(data[3]) - 1
         to = int(data[5]) - 1
 
-        if amount == 1:
-            move(all[fro], all[to])
-        # only added for part 2
-        elif amount > 1:
-            move_multiple(all[fro], all[to], amount)
+        # part two logic
+        if part == 2:
+            if amount == 1:
+                move(stacks[fro], stacks[to])
+            elif amount > 1:
+                move_multiple(stacks[fro], stacks[to], amount)
+
+        # part one logic:
+        else:
+            for _ in range(amount):
+                move(stacks[fro], stacks[to])
 
     # final result string
     result = ''
-    for stack in all:
+    for stack in stacks:
         result += stack[-1]
 
     print(result)
