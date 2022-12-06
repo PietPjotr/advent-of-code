@@ -33,38 +33,48 @@ def deel1(lines):
 def deel2(lines):
     nice_lines = 0
 
+    nice = []
     for line in lines:
-        line = line.strip()
-        double = 0
-        double_string = 0
 
-        for j in range(len(line) - 1):
-            string = line[j] + line[j+1]
-            string2 = line[j+1] + line[j]
-            # print(string, line, line[0:j] + line[j+2:])
-            if string in (line[0:j] + line[j+2:]):
-                double_string += 1
+        # check for the first condition: pair of letters that appears twice without overlapping
+        n_grams = []
+        n = 2
+        cond1 = False
+        cond2 = False
+
+        # create all bi-grams
+        for i in range(len(line) - n + 1):
+            n_grams.append(line[i: i + n])
+
+        for i, gram in enumerate(n_grams):
+            if gram in n_grams[i + 2:]:
+                cond1 = True
                 break
 
-        for i in range(len(line) - 2):
-            if line[i] == line[i + 2]:
-                double += 1
+        # checking for condition 2
+        for i in range(1, len(n_grams) - 1):
+            gram = n_grams[i]
+            if gram[::-1] == n_grams[i + 1] or gram[::-1] == n_grams[i - 1]:
+                cond2 = True
                 break
 
-        # print(double, double_string)
-        if double > 0 and double_string > 0:
+
+        # if both conditions are true then the line is nice
+        if cond1 and cond2:
             nice_lines += 1
 
     print(nice_lines)
 
 
 def main():
-    # lines = parser.input_as_string('inputs/.txt')
+
     lines = parser.input_as_lines('inputs/5.txt')
-    # lines = parser.input_as_ints('inputs/.txt')
-    # lines = parser.input_as_grid('inputs/.txt')
     # lines = ['qjhvhtzxzqqjkmpb']
-    # lines = ['aaaa']
+    # lines = ["xxyxx"]
+    # lines = ["uurcxstgmygtbstg"]
+    # lines = ["ieodomkazucvgmuy"]
+    # lines = ["urrvucyrzzzooxhx"]
+
     # deel1(lines)
     deel2(lines)
 
