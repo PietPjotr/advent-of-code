@@ -58,7 +58,6 @@ def deel2(lines):
                 cond2 = True
                 break
 
-
         # if both conditions are true then the line is nice
         if cond1 and cond2:
             nice_lines += 1
@@ -69,13 +68,8 @@ def deel2(lines):
 def main():
 
     lines = parser.input_as_lines('inputs/5.txt')
-    # lines = ['qjhvhtzxzqqjkmpb']
-    # lines = ["xxyxx"]
-    # lines = ["uurcxstgmygtbstg"]
-    # lines = ["ieodomkazucvgmuy"]
-    # lines = ["urrvucyrzzzooxhx"]
 
-    # deel1(lines)
+    deel1(lines)
     deel2(lines)
 
 
