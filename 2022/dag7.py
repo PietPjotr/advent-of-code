@@ -1,7 +1,7 @@
 import parser
 
-# Implementing Python Tree Data Structure
-# Creating a class for node object
+# My tree datastructure to easily reference the parents as well in case of a cd .. command. That is why i opted for my
+# own tree datastructure insead of using a dict of dicts. Slightly more efficient in case the tree got too large.
 class Node():
     def __init__(self, name, parent=None, value=0):
         self.name = name
@@ -16,12 +16,6 @@ class Node():
         print(self.name, self.value)
         for child in self.children:
             child.print_tree()
-
-    def get_value(self):
-        return self.value
-
-    def get_children(self):
-        return self.children
 
     def update_values(self):
         sum = 0
@@ -50,7 +44,17 @@ class Node():
 
         return dirs
 
+    def get_dir_names(self):
+        dirs = []
+        if self.children != []:
+            dirs.append(self.name)
+        for child in self.children:
+            dirs += child.get_dir_names()
 
+        return dirs
+
+
+"""add the value of the new dirname to the parent node and returns it as the current directory in the main function"""
 def cd(node, path):
     if path == '..':
         return node.parent
@@ -63,7 +67,7 @@ def cd(node, path):
         node.insert_node(new_node)
         return new_node
 
-"""Adds all the values of the children to the parent node"""
+"""Adds all the children nodes to the children list of the parent node."""
 def ls(node, files):
     for file in files:
         # node is a directory
@@ -132,13 +136,15 @@ def deel2(lines):
     dirs.sort(key=lambda x: x[1])
     print(dirs[0][1])
 
+    # dirs = root.get_dir_names()
+    # print(len(dirs) == len(set(dirs)), len(dirs), len(set(dirs)))
+
 
 def main():
     lines = parser.input_as_lines('inputs/dag7.txt')
     # lines = parser.input_as_lines('inputs/dag7_test.txt')
     deel1(lines)
     deel2(lines)
-
 
 
 if __name__ == "__main__":
