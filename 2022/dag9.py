@@ -58,7 +58,6 @@ def follow(positions, visited):
                     adjacent = True
 
         if adjacent:
-            # print('adjacent, head coords: {}, {}, tail coords: {}, {}'.format(xH, yH, xT, yT))
             continue
 
         else:
