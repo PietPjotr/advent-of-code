@@ -97,17 +97,13 @@ def deel1(lines, verbose=False):
     positions = [[0, 0] for _ in range(knots)]
     visited.add((positions[-1][0], positions[-1][1]))
 
-    verbose = False
     for move in lines:
         [dir, steps] = move.split(' ')
         for i in range(int(steps)):
             positions, visited = move_head(positions, visited, dir)
 
-        if verbose:
-            print(positions, visited, dir)
-            print_grid(positions, visited)
-
-    # print_visited(visited)
+    if verbose:
+        print_visited(visited)
     print(len(visited))
 
 def deel2(lines, verbose=False):
@@ -116,23 +112,19 @@ def deel2(lines, verbose=False):
     positions = [[0, 0] for _ in range(knots)]
     visited.add((positions[-1][0], positions[-1][1]))
 
-    verbose = False
     for move in lines:
         [dir, steps] = move.split(' ')
         for i in range(int(steps)):
             positions, visited = move_head(positions, visited, dir)
 
-        if verbose:
-            print(positions, visited, dir)
-            print_grid(positions, visited)
-
-    # print_visited(visited)
+    if verbose:
+        print_visited(visited)
     print(len(visited))
 
 
 def main():
     lines = parser.input_as_lines('inputs/dag9.txt')
-    # lines = parser.input_as_lines('inputs/dag9_test.txt')
+    lines = parser.input_as_lines('inputs/dag9_test.txt')
     verbose = False
     deel1(lines, verbose)
     deel2(lines, verbose)
