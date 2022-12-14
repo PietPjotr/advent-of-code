@@ -5,7 +5,7 @@ air = '.'
 
 def print_grid(grid):
     for row in grid:
-        for el in row[400:550]:
+        for el in row[400:570]:
             print(el, end='')
         print()
 
@@ -45,7 +45,7 @@ def dropsand(sx, sy, grid):
 
 def part(part):
     lines = parser.input_as_lines('inputs/dag14.txt')
-    lines = parser.input_as_lines('inputs/dag14_test.txt')
+    # lines = parser.input_as_lines('inputs/dag14_test.txt')
 
     instructions = []
     for line in lines:
@@ -97,7 +97,8 @@ def part(part):
         # print_grid(grid)
         sand += 1
 
-    print_grid(grid)
+    # turn on to show the sand in the grid.
+    # print_grid(grid)
     if part == 1:
         print(sand)
     elif part == 2:
@@ -105,7 +106,7 @@ def part(part):
 
 def main():
     part(1)
-    # part(2)
+    part(2)
 
 
 if __name__ == "__main__":
