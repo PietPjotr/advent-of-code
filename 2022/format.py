@@ -8,10 +8,10 @@ def deel2(lines):
 
 def main():
     # lines = parser.input_as_string('inputs/.txt')
-    # lines = parser.input_as_lines('inputs/.txt')
+    # lines = parser.input_as_lines('inputs/dag .txt')
+    # lines = parser.input_as_lines('inputs/dag _test.txt')
     # lines = parser.input_as_ints('inputs/.txt')
     # lines = parser.input_as_grid('inputs/.txt')
-    deel1(lines)
 
 if __name__ == "__main__":
     main()
