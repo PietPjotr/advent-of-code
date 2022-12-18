@@ -48,7 +48,6 @@ def main():
     start = (x_min - 1, y_min - 1, z_min - 1)
     stack = [start]
     added = set([start])
-    i = 0
     while stack:
         cube = stack.pop()
         x, y, z = cube
