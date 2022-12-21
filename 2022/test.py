@@ -1,53 +1,42 @@
-"""
-This actually works and is written by openAI, pretty cool
-"""
+from collections import deque
 
-# import the necessary libraries
-import os
-import sys
+class Number:
+    def __init__(self, value):
+        self.value = value
 
-# define the main function
-def main():
-    file = open("inputs/dag3.txt", "r")
-    lines = file.readlines()
-    file.close()
-    priorities = []
+    def __repr__(self):
+        return f"{self.value}"
 
-    # loop through the lines
-    for line in lines:
-        items = []
-        for char in line:
-            if char != "\n":
-                items.append(char)
-                
-        first_compartment = []
-        second_compartment = []
 
-        # loop through the items
-        for i in range(len(items)):
-            if i < len(items) / 2:
-                first_compartment.append(items[i])
-            # if the index is greater than or equal to half the length of the items list
-            else:
-                second_compartment.append(items[i])
+def mix(filename, key=1, count=1):
+    with open(filename) as file:
+        original = [Number(int(num) * key) for num in file]
 
-        # create a list to store the common items
-        common_items = []
-        for item in first_compartment:
-            if item in second_compartment:
-                common_items.append(item)
-        common_priorities = []
+    print("start", original)
+    nums = original.copy()
 
-        for item in common_items:
-            if item.islower():
-                common_priorities.append(ord(item) - 96)
-            # if the item is uppercase
-            elif item.isupper():
-                common_priorities.append(ord(item) - 38)
-        priorities.append(sum(common_priorities))
+    for _ in range(count):
+        for num in original:
+            i = nums.index(num)
+            new_i = (i + num.value) % (len(nums) - 1)
 
-    print(sum(priorities))
+            nums.insert(new_i, nums.pop(i))
 
-# run the main function
-if __name__ == "__main__":
-    main()
+    i_0 = nums.index(list(filter(lambda n: n.value == 0, nums))[0])
+
+    q = deque(nums)
+    q.rotate(-1)
+    print(list(q))
+    return sum([nums[(i_0 + i) % len(nums)].value for i in range(1000, 3001, 1000)])
+
+
+def part_1():
+    return mix("inputs/dag20_test.txt")
+
+
+def part_2():
+    return mix("inputs/dag20.txt", key=811589153, count=10)
+
+
+print(part_1())
+# print(part_2())
