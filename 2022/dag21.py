@@ -52,7 +52,6 @@ def main():
     left = find_humn(monkeys, left_monkey)
     right = find_humn(monkeys, right_monkey)
 
-
     right_val = update_vals(monkeys, monkeys['root'][1])
 
     # these values were experimentally found, these bounds are specific to my input, used for the binary search
@@ -69,7 +68,6 @@ def main():
         else:
             end = mid
     print(mid)
-
 
 
 if __name__ == "__main__":
