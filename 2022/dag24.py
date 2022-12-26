@@ -1,11 +1,5 @@
 import parser
-from collections import deque
 
-def deel1(lines):
-    pass
-
-def deel2(lines):
-    pass
 
 def show(grid, x_max=5, y_max=5):
     x_min, y_min = 1, 1
@@ -78,8 +72,10 @@ def update_blizzards(blizzards, x_max=5, y_max=5):
     return next_.copy()
 
 
-def find_path(blizzards, x_max, y_max, target_pos, start_pos):
+def find_path(blizzards, x_max, y_max, start_pos, target_pos):
+    neighs = [(0, 1), (0, -1), (1, 0), (-1, 0), (0, 0)]
     current_positions = {start_pos}
+    # arbitrary loop value, should never be exceeded
     for i in range(1000):
         next_positions = set()
         blizzards = update_blizzards(blizzards, x_max, y_max)
@@ -89,31 +85,14 @@ def find_path(blizzards, x_max, y_max, target_pos, start_pos):
         for pos in current_positions:
             x, y = pos
             if pos == target_pos:
-                print("exit found:", i)
                 return blizzards, i
 
-            if (x, y) in positions:
-                next_positions.add((x, y))
-            if (x + 1, y) in positions:
-                next_positions.add((x + 1, y))
-            if (x - 1, y) in positions:
-                next_positions.add((x - 1, y))
-            if (x, y + 1) in positions:
-                next_positions.add((x, y + 1))
-            if (x, y - 1) in positions:
-                next_positions.add((x, y - 1))
-        # s = sorted(list(positions), key=lambda x: (x[1], x[0]))
-        # print("available positions:", s)
-        # sn = sorted(list(next_positions), key=lambda x: (x[1], x[0]))
-        # print("next positions:", sn)
-        # sc = sorted(list(current_positions), key=lambda x: (x[1], x[0]))
-        # print("current positions:", sc)
+            for neigh in neighs:
+                new_pos = (x + neigh[0], y + neigh[1])
+                if new_pos in positions:
+                    next_positions.add(new_pos)
 
         current_positions = next_positions.copy()
-
-        # show(blizzards, x_max, y_max)
-        # show_pos(current_positions, x_max, y_max)
-        print(i + 1)
 
 
 def get_available_positions(positions, x_max, y_max):
@@ -143,30 +122,21 @@ def main():
     x_max = len(lines[0]) - 2
     y_max = len(lines) - 2
 
+    start_pos = (1, 0)
+    end_pos = (x_max, y_max + 1)
+
     time = 0
-    target_pos = (x_max, y_max + 1)
-    start_pos = (1, 0)
-    blizzards, i = find_path(blizzards, x_max, y_max, target_pos, start_pos)
+    blizzards, i = find_path(blizzards, x_max, y_max, start_pos, end_pos)
+    time += i
+    print("part1:", time)
+
+    blizzards, i = find_path(blizzards, x_max, y_max, end_pos, start_pos)
     time += i
 
-    target_pos = (1, 0)
-    start_pos = (x_max, y_max + 1)
-    blizzards, i = find_path(blizzards, x_max, y_max, target_pos, start_pos)
+    blizzards, i = find_path(blizzards, x_max, y_max, start_pos, end_pos)
     time += i
 
-    target_pos = (x_max, y_max + 1)
-    start_pos = (1, 0)
-    blizzards, i = find_path(blizzards, x_max, y_max, target_pos, start_pos)
-    time += i
-
-    print("time:", time + 2)
-
-
-
-
-    # res = find_path(all_available, target_pos)
-    # print(res)
-    # print(target_pos)
+    print("part2:", time + 2)
 
 
 if __name__ == "__main__":
