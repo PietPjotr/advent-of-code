@@ -1,5 +1,4 @@
 import parser
-import re
 
 def deel1(lines):
     pass
@@ -90,6 +89,17 @@ def move(grid, pos, dir, steps, path=[]):
 
 
 def main():
+
+    # foldage into the cube
+    #   BBRR
+    #   BBRR
+    #   TT
+    #   TT
+    # LLFF
+    # LLFF
+    # DD
+    # DD
+
     lines = parser.input_as_lines('inputs/dag22.txt')
     # lines = parser.input_as_lines('inputs/dag22_test.txt')
     ins = lines[-1]
