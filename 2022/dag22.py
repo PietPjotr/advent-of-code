@@ -454,7 +454,7 @@ def main():
     col = pos[0] + 1
     row = pos[1] + 1
 
-    print(1000 * row + 4 * col + dirs.index(dir))
+    print("part1:", 1000 * row + 4 * col + dirs.index(dir))
 
     # part 2
     pos = [50, 0]
@@ -472,7 +472,7 @@ def main():
     col = pos[0] + 1
     row = pos[1] + 1
 
-    print(1000 * row + 4 * col + dirs.index(dir))
+    print("part2:", 1000 * row + 4 * col + dirs.index(dir))
 
 
 if __name__ == "__main__":
