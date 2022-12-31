@@ -219,6 +219,7 @@ def get_new_face(face, pos):
 # DD
 # DD
 
+
 transform = {('T', 'R'): ('L', lambda x, y: (100 + (y - 50), 49)), ('T', 'L'): ('L', lambda x, y: (0 + (y - 50), 100)),
              ('T', 'B'): ('', lambda x, y: (x, y)), ('T', 'F'): ('', lambda x, y: (x, y)),
              ('F', 'R'): ('RR', lambda x, y: (149, 49 - (y - 100))), ('F', 'L'): ('', lambda x, y: (x, y)),
@@ -241,6 +242,7 @@ transform = {('T', 'R'): ('L', lambda x, y: (100 + (y - 50), 49)), ('T', 'L'): (
 # DDLLTT
 #     FFRR
 #     FFRR
+
 
 # used to test the the main function using the test input on the website
 # transform = {('T', 'R'): ('R', lambda x, y: (15 - (y - 4), 8)), ('T', 'L'): ('', lambda x, y: (x, y)),

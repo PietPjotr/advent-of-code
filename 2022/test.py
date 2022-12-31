@@ -1,62 +1,173 @@
-from collections import defaultdict
+"""
+Day 16: Proboscidea Volcanium
+"""
+
 import heapq
+import math
+import re
+from collections import defaultdict
+from dataclasses import dataclass
+
+import parser
+
+PATTERN = re.compile(
+    r"Valve (\w+) has flow rate=(\d+); "
+    r"(?:tunnel leads to valve|tunnels lead to valves) (\w+(?:, \w+)*)"
+)
+
+SAMPLE_INPUT = [
+    "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB",
+    "Valve BB has flow rate=13; tunnels lead to valves CC, AA",
+    "Valve CC has flow rate=2; tunnels lead to valves DD, BB",
+    "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE",
+    "Valve EE has flow rate=3; tunnels lead to valves FF, DD",
+    "Valve FF has flow rate=0; tunnels lead to valves EE, GG",
+    "Valve GG has flow rate=0; tunnels lead to valves FF, HH",
+    "Valve HH has flow rate=22; tunnel leads to valve GG",
+    "Valve II has flow rate=0; tunnels lead to valves AA, JJ",
+    "Valve JJ has flow rate=21; tunnel leads to valve II",
+]
+
+my_input = parser.input_as_lines('inputs/dag16.txt')
 
 
-def read_input():
-    dirdict = {'<': (-1, 0), '>': (1, 0), '^': (0, -1), 'v': (0, 1)}
-    with open("inputs/dag24.txt") as f:
-        lines = f.read().splitlines()
-        board_height = len(lines) - 2
-        board_width = len(lines[1]) - 2
-        elf_start = (lines[0].index(".") - 1, -1)
-        elf_end = (lines[-1].index(".") - 1, board_height)
-        blizzards = [((x - 1, y - 1), dirdict[lines[y][x]]) \
-                     for y in range(1, board_height + 1) for x in range(1, board_width + 1) if lines[y][x] in dirdict]
-        return elf_start, elf_end, blizzards, board_width, board_height
+def _parse(lines):
+    return {
+        (match := re.match(PATTERN, line)).group(1): (
+            int(match.group(2)),
+            match.group(3).split(", "),
+        )
+        for line in lines
+    }
 
 
-def move_blizzards(blizzards, time):
-    if time in blizzard_dict: return blizzard_dict[time]
-    stuff = defaultdict(list)
-    for blizzard in blizzards:
-        x, y = (blizzard[0][0] + blizzard[1][0] * time) % board_width, \
-               (blizzard[0][1] + blizzard[1][1] * time) % board_height
-        stuff[(x, y)].append(blizzard)
-    blizzard_dict[time] = stuff
-    return stuff
+def _distances(adj):
+    keys, distances = set(), defaultdict(lambda: math.inf)
+    for src, dsts in adj:
+        keys.add(src)
+        distances[src, src] = 0
+        for dst, weight in dsts:
+            keys.add(dst)
+            distances[dst, dst] = 0
+            distances[src, dst] = weight
+    for mid in keys:
+        for src in keys:
+            for dst in keys:
+                distance = distances[src, mid] + distances[mid, dst]
+                if distance < distances[src, dst]:
+                    distances[src, dst] = distance
+    return distances
 
 
-def calc_moves(pos, blizzards, time):
-    delta_force = [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)]
-    stuff = move_blizzards(blizzards, time + 1)
-    moves = []
-    for delta in delta_force:
-        x, y = pos[0] + delta[0], pos[1] + delta[1]
-        if (x, y) not in stuff and (
-                (x, y) == elf_end or (x, y) == elf_start or x >= 0 and x < board_width and y >= 0 and y < board_height):
-            moves.append((x, y))
-
-    return moves
+@dataclass(order=True, frozen=True)
+class _State:
+    rooms: tuple[tuple[str, int]]
+    valves: frozenset[str]
+    flow: int
+    total: int
+    time: int
 
 
-def find_path_time(blizzards, start_pos, end_pos, time):
-    heap = []
-    heapq.heappush(heap, (0, start_pos, time))
-    visited = set()
+def _solve(lines, num_agents, total_time):
+    # pylint: disable=too-many-branches,too-many-nested-blocks,too-many-locals
+    graph = _parse(lines)
+    distances = _distances(
+        (src, ((dst, 1) for dst in dsts)) for src, (_, dsts) in graph.items()
+    )
+    seen, max_seen = set(), 0
+    heap = [
+        (
+            0,
+            _State(
+                rooms=(("AA", 0),) * num_agents,
+                valves=frozenset(src for src, (flow, _) in graph.items() if flow > 0),
+                flow=0,
+                total=0,
+                time=total_time,
+            ),
+        )
+    ]
 
     while heap:
-        _, pos, time = heapq.heappop(heap)
-        if pos == end_pos: return time
-        if (pos, time) not in visited:
-            visited.add((pos, time))
-            for move in calc_moves(pos, blizzards, time):
-                heapq.heappush(heap, (abs(pos[0] - end_pos[0]) + abs(pos[1] - end_pos[1]) + time, move, time + 1))
+        estimate, state = heapq.heappop(heap)
+        estimate = -estimate
+        if state in seen:
+            continue
+        seen.add(state)
+        potential = estimate + sum(
+            max(
+                (
+                    graph[valve][0] * (state.time - delta - 1)
+                    for room, age in state.rooms
+                    if (delta := distances[room, valve] - age) in range(state.time)
+                ),
+                default=0,
+            )
+            for valve in state.valves
+        )
+        if estimate > max_seen:
+            max_seen = estimate
+        if potential < max_seen:
+            continue
+
+        moves_by_time = defaultdict(lambda: defaultdict(list))
+        for valve in state.valves:
+            for i, (room, age) in enumerate(state.rooms):
+                delta = distances[room, valve] - age
+                if delta in range(state.time):
+                    moves_by_time[delta][i].append(valve)
+        if not moves_by_time:
+            continue
+
+        for delta, moves_by_agent in moves_by_time.items():
+            indices = [None] * num_agents
+            while True:
+                for i, index in enumerate(indices):
+                    index = 0 if index is None else index + 1
+                    if index < len(moves_by_agent[i]):
+                        indices[i] = index
+                        break
+                    indices[i] = None
+                else:
+                    break
+                valves = [
+                    (i, moves_by_agent[i][index])
+                    for i, index in enumerate(indices)
+                    if index is not None
+                ]
+                if len(valves) != len(set(valve for _, valve in valves)):
+                    continue
+                new_rooms = [(room, age + delta + 1) for room, age in state.rooms]
+                for i, valve in valves:
+                    new_rooms[i] = valve, 0
+                rate = sum(graph[valve][0] for _, valve in valves)
+                new_state = _State(
+                    rooms=tuple(sorted(new_rooms)),
+                    valves=state.valves - set(valve for _, valve in valves),
+                    flow=state.flow + rate,
+                    total=state.total + state.flow * (delta + 1),
+                    time=state.time - delta - 1,
+                )
+                heapq.heappush(heap, (-estimate - rate * new_state.time, new_state))
+
+    return max_seen
 
 
-elf_start, elf_end, blizzards, board_width, board_height = read_input()
-blizzard_dict = {}
+def part1(lines):
+    """
+    >>> part1(SAMPLE_INPUT)
+    1651
+    """
+    return _solve(lines, num_agents=1, total_time=30)
 
-part1_time = find_path_time(blizzards, elf_start, elf_end, 0)
-print("Part 1:", part1_time)
-print("Part 2:", find_path_time(blizzards, elf_start, elf_end,
-                                find_path_time(blizzards, elf_end, elf_start, part1_time)))
+
+def part2(lines):
+    """
+    >>> part2(SAMPLE_INPUT)
+    1707
+    """
+    return _solve(lines, num_agents=2, total_time=26)
+
+
+parts = part1(my_input)
+print(parts)
