@@ -36,7 +36,6 @@ def get_maxs(costs, blueprint):
     max_ore = max([costs[blueprint][1], costs[blueprint][2][0], costs[blueprint][3][0]])
     max_clay = costs[blueprint][2][1]
     max_obsidian = costs[blueprint][3][1]
-
     return [max_ore, max_clay, max_obsidian, float('inf')]
 
 
@@ -117,12 +116,13 @@ def main():
 
     # part2
     scores_part2 = []
-    for blueprint in range(3):
+    for blueprint in range(len(costs[:3])):
         maxs = get_maxs(costs, blueprint)
         scores_part2.append(calc_max_score(costs, blueprint, stack.copy(), maxs, 32))
 
-    final_score = scores_part2[0] * scores_part2[1] * scores_part2[2]
-    print("part2:", final_score)
+    acc = 1
+    [acc := acc * score for score in scores_part2]
+    print("part2:", acc)
 
 
 if __name__ == "__main__":
