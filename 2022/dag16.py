@@ -28,22 +28,6 @@ minutes = 30
 start_node = 'AA'
 
 
-"""This function was used to test the scores of a given path. Not used at the moment."""
-def confirm_path_score(nodes, distances, names, path, minutes=30, verbose=False):
-    score = 0
-    for i in range(0, len(path) - 1):
-        fro = path[i]
-        to = path[i + 1]
-        j = names.index(fro)
-        k = names.index(to)
-        minutes -= distances[j][k]
-        delta = nodes[to][0] * minutes
-        score += delta
-        if verbose:
-            print("opening:", to, "adding:", delta, "new score:", score, "minutes:", minutes, "score:", nodes[to][0])
-    return score
-
-
 """This function creates the distance matrix using floyd-warshall and deletes the valves with 0 flow."""
 def create_distance_matrix(nodes):
     distances = []
