@@ -169,5 +169,5 @@ def part2(lines):
     return _solve(lines, num_agents=2, total_time=26)
 
 
-parts = part1(my_input)
+parts = (part1(my_input), part2(my_input))
 print(parts)
