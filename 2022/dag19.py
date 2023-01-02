@@ -1,5 +1,5 @@
 import parser
-import time
+
 
 def buy_robot(costs, blueprint, old_ores, to_buy):
     ores = old_ores.copy()
@@ -26,29 +26,63 @@ def buy_robot(costs, blueprint, old_ores, to_buy):
     return ores, new_robot
 
 
-def upper_bound(costs, blueprint, minutes, robots, ores):
-    production = sum(robots)
+def upper_bound(minutes, robots, ores, limit=24):
     score = ores[3]
-    resources = ores[0] + ores[2]
-    # highest = 0
-    # for i, bots in enumerate(robots):
-    #     if bots > 0:
-    #         highest = i
+    crackers = robots[3]
+    return score + sum([crackers + i for i in range(limit - minutes)])
 
-    # if highest == 3:
-    cost = sum(list(costs[blueprint][3]))
-    crackers = robots[3] + resources / cost
-    while minutes <= 32:
-        score += crackers
-        crackers += production / cost
-        production = production + production / cost
+
+def get_maxs(costs, blueprint):
+    max_ore = max([costs[blueprint][1], costs[blueprint][2][0], costs[blueprint][3][0]])
+    max_clay = costs[blueprint][2][1]
+    max_obsidian = costs[blueprint][3][1]
+
+    return [max_ore, max_clay, max_obsidian, float('inf')]
+
+
+def calc_max_score(costs, blueprint, stack, maxs, limit=24):
+    highscore = 0
+
+    while stack:
+        minutes, robots, ores, to_buy = stack.pop()
+        if minutes == limit:
+            if ores[3] > highscore:
+                highscore = ores[3]
+            continue
+
+        if upper_bound(minutes, robots, ores, limit) < highscore:
+            continue
+
+        ores, new_robot = buy_robot(costs, blueprint, ores, to_buy)
+
+        # update the ores based on the amount of robots we have not yet counting the robot we just made
+        for i in range(4):
+            ores[i] += robots[i]
+
+        # if we can build a new robot we build the new robot and add a new frame with all other possible to_buy robots
         minutes += 1
-    # elif highest == 2:
+        new_to_buy = [0, 1]  # we can always get the resources for the first two robots, so we always add those
+        if new_robot >= 0:
+            new_robots = robots.copy()
+            new_robots[new_robot] += 1
+            # if we have a clay robot we no longer want to build ore robots
+            if robots[1] >= 1:
+                new_to_buy = [1, 2]
+                # if we have an obsidian robot we can also start saving up for geode cracking robots
+                if robots[2] >= 1:
+                    new_to_buy.append(3)
+            # add all the different possibilities to the stack and also prune on more robots than resources we could
+            # spend in a single turn.
+            for to_buy in new_to_buy:
+                if robots[to_buy] < maxs[to_buy]:
+                    new_frame = [minutes, new_robots, ores, to_buy]
+                    stack.append(new_frame)
+        # we couldn't buy a new robot, so we simply add the current frame with the new recourses and time
+        else:
+            new_frame = [minutes, robots, ores, to_buy]
+            stack.append(new_frame)
 
-    return int(score)
-# else:
-#     return float('inf')
-
+    return highscore
 
 
 def main():
@@ -63,97 +97,33 @@ def main():
         r4 = (int(line[27]), int(line[30]))
         costs.append([r1, r2, r3, r4])
 
-    scores = []
-    # for blueprint in range(len(costs[0:3])):
-    for blueprint in range(2,3):
-        start = time.time()
+    minutes = 0
+    robots = [1, 0, 0, 0]
+    ores = [0, 0, 0, 0]
+    to_buy = [0, 1]
+    frame1 = [minutes, robots, ores, to_buy[0]]
+    frame2 = [minutes, robots, ores, to_buy[1]]
+    stack = [frame1, frame2]
 
-        stack = []
-        minutes = 0
-        robots = [1, 0, 0, 0]
-        ores = [0, 0, 0, 0]
-        to_buy = 0
-        frame1 = [minutes, robots, ores, to_buy]
+    # part1
+    scores_part1 = []
+    for blueprint in range(len(costs)):
+        maxs = get_maxs(costs, blueprint)
+        scores_part1.append(calc_max_score(costs, blueprint, stack.copy(), maxs))
 
-        to_buy = 1
-        frame2 = [minutes, robots, ores, to_buy]
-        stack.append(frame1)
-        stack.append(frame2)
-        max_ore = max([costs[blueprint][0], costs[blueprint][1], costs[blueprint][2][0], costs[blueprint][3][0]])
-        max_clay = costs[blueprint][2][1]
-        max_obsidian = costs[blueprint][3][1]
-        maxs = [max_ore, max_clay, max_obsidian, float('inf')]
-        its = 0
-        highscore = 26
+    final_score = sum([(i + 1) * score for i, score in enumerate(scores_part1)])
+    print("part1:", final_score)
 
-        while stack:
-            current_frame = stack.pop()
-            minutes, robots, ores, to_buy = current_frame
-            if minutes == 32:
-                if ores[3] > highscore:
-                    highscore = ores[3]
-                    end = time.time()
-                    print("new highscore:", highscore, end - start)
-                continue
 
-            if upper_bound(costs, blueprint, minutes, robots, ores) < highscore:
-                continue
+    # part2
+    scores_part2 = []
+    for blueprint in range(3):
+        maxs = get_maxs(costs, blueprint)
+        scores_part2.append(calc_max_score(costs, blueprint, stack.copy(), maxs, 32))
 
-            ores, new_robot = buy_robot(costs, blueprint, ores, to_buy)
-
-            # update the ores based on the amount of robots we have not yet counting the robot we just made
-            for i in range(4):
-                ores[i] += robots[i]
-
-            # if we can build a new robot we build the new robot and add a new frame with all other possible to_buy robots
-            minutes += 1
-            new_to_buy = [0, 1]  # we can always get the resources for the first two robots, so we always add those
-            if new_robot >= 0:
-                new_robots = robots.copy()
-                new_robots[new_robot] += 1
-                # if we have a clay robot we can also save up for an obsidian robot
-                if robots[1] >= 1:
-                    new_to_buy.append(2)
-                    # if we have an obsidian robot we can save up for a geode robot
-                    if robots[2] >= 1:
-                        new_to_buy.append(3)
-                for to_buy in new_to_buy:
-                    if robots[to_buy] < maxs[to_buy]:
-                        # throw away all the excess resources
-                        # for j, ore in enumerate(ores):
-                        #     if ore > maxs[j] * 2:
-                        #         ores[j] = maxs[j]
-                        new_frame = [minutes, new_robots, ores, to_buy]
-                        stack.append(new_frame)
-                    # print("adding new frames:", new_frame)
-            # we couldn't buy a new robot, so we simply add the current frame with the new recourses and the updated time
-            else:
-                # throw away all the excess resources
-                # for j, ore in enumerate(ores):
-                #     if ore > maxs[j] * 2:
-                #         ores[j] = maxs[j]
-                new_frame = [minutes, robots, ores, to_buy]
-                stack.append(new_frame)
-                # print("adding one new frame:", new_frame)
-
-            its += 1
-            # if its % 1000 == 0:
-            #     print(its, highscore, len(stack))
-        print("highscore found:", highscore, blueprint)
-        scores.append(highscore)
-
-    print(scores)
-    final_score = sum([(i + 1) * score for i, score in enumerate(scores)])
-    print(final_score)
-    final_score = scores[0] * scores[1] * scores[2]
-    print(final_score)
+    final_score = scores_part2[0] * scores_part2[1] * scores_part2[2]
+    print("part2:", final_score)
 
 
 if __name__ == "__main__":
     main()
-
-# guesses part2: 2816: too low so probably something like 8, 16, >22
-#              : 3200: still too low -------------------->8, 16, >25
-#              : 3840: still too low -------------------->8, 16, >30
-#              : 4480: not the right answer :( 35
-# 34           : 4352: nor right
