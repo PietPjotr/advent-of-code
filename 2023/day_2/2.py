@@ -12,11 +12,12 @@ def part1():
         red = 0
         green = 0
 
+        # take only the line after the colon.
         line = line[line.find(':') + 2:]
-        line = list([val for val in line if val.isalnum()])
-        line = ''.join(line)
 
-        line = re.findall(r'(\d+|[a-zA-Z]+)', line)
+        # split the lines on color and number of occurances only
+        line = re.findall(r'[a-z0-9]+', line)
+
         j = 1
         pos = True
 
