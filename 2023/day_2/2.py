@@ -47,11 +47,9 @@ def part2():
     for i, line in enumerate(lines):
 
         line = line[line.find(':') + 2:]
-        line = list([val for val in line if val.isalnum()])
-        line = ''.join(line)
 
-        line = re.findall(r'(\d+|[a-zA-Z]+)', line)
-        j = 1
+        # split the lines on color and number of occurances only
+        line = re.findall(r'[a-z0-9]+', line)
 
         mingreen = 0
         minred = 0
