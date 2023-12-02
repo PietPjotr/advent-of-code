@@ -67,8 +67,6 @@ def part2():
                 if int(line[j - 1]) > minblue:
                     minblue = int(line[j - 1])
 
-            j += 2
-
         power = minred * mingreen * minblue
         powers.append(power)
 
