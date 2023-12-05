@@ -64,7 +64,6 @@ def create_distance_matrix(nodes):
                     new_distance.append(distances[i][j] + 1)
             new_distances.append(new_distance)
             names.append(name1)
-    # print(np.matrix(new_distances))
     return new_distances, names
 
 
@@ -113,13 +112,19 @@ def find_highest_pressure_single(nodes, distances, names, stack):
 
 # This function is not being used, unfortunately this method of finding the result for part 2 did not work. Instead, I
 # ended up finding the values for all the paths and combining the two disjoint paths with the largest value.
+
+# TODO: implement a method where we let one player keep picking a node and then simulating the score with the single
+# score function since that function is pretty fast, so this might just result in a fast enough function to complete
+# part2 in relatively short time (altough, we will need to simulate this a lot of times still which probably will end up
+# taking a lot of time, but I guess we'll find out. There might also be extra ways to prune the possibilities with this
+# method. We'll see :)
 def find_highest_pressure_double(nodes, distances, names, minutes):
     global start_node
     remaining_score = sum([nodes[node][0] for node in names])
     start_frame = Frame((minutes, minutes), 0, (start_node, start_node), {start_node},
                         ([start_node], [start_node]), remaining_score)
     stack = [start_frame]
-    maximum = 2080  # the score that we got from part 1
+    maximum = 1400  # the score that we got from part 1
     its = 0
     final_path = []
     while stack:
@@ -129,10 +134,11 @@ def find_highest_pressure_double(nodes, distances, names, minutes):
         if upper_bound(current_score, remaining_score, max(i1, i2)) < maximum:
             continue
         # we always start at a valve with no value, so we just simply add it to the opened set
-        if len(opened) == len(names) and current_score > maximum:
-            maximum = current_score
-            final_path = (path1, path2)
-            print("new high score found (opened all valves):", current_score)
+        if len(opened) == len(names):
+            if current_score > maximum:
+                maximum = current_score
+                final_path = (path1, path2)
+                print("new high score found (opened all valves):", current_score)
             continue
 
         remaining = [node for node in names if node not in opened]
@@ -141,11 +147,6 @@ def find_highest_pressure_double(nodes, distances, names, minutes):
             for i in range(2):
                 node1 = pair[i]
                 node2 = pair[1 - i]
-                if node1 == node2:
-                    print("we have found two similar nodes for both players at: ", its, node1, pair)
-                if (node1 is None and node2 is None) or (node1 is None or node2 is None):
-                    print("something strange has happened")
-                    continue
                 j1, j2 = names.index(cur1), names.index(cur2)
                 k1, k2 = names.index(node1), names.index(node2)
                 cost1, cost2 = distances[j1][k1], distances[j2][k2]
@@ -153,21 +154,24 @@ def find_highest_pressure_double(nodes, distances, names, minutes):
 
                 # simulate player 1 as if it is the only one, since player one is out of time
                 if new_i1 > 0 and 0 >= new_i2:
-                    start_frame = Frame(i1, 0, cur1, opened.copy(), path1.copy(), remaining_score)
-                    dscore1, path1 = find_highest_pressure_single(nodes, distances, names, [start_frame])
+
+                    new_score = new_i1 * nodes[node1][0]
+                    start_frame = Frame(i1, new_score, cur1, opened | {node1}, path1 + [node1], remaining_score)
+                    dscore1, new_path1 = find_highest_pressure_single(nodes, distances, names, [start_frame])
                     if current_score + dscore1 > maximum:
                         maximum = current_score + dscore1
-                        final_path = (path1, path2)
+                        final_path = (new_path1, path2)
                         print("new high score found (player 1):", current_score + dscore1)
                     continue
 
                 # simulate player 2 as if it is the only one, since player one is out of time
                 if new_i2 > 0 and 0 >= new_i1:
-                    start_frame = Frame(i2, 0, cur2, opened.copy(), path2.copy(), remaining_score)
-                    dscore2, path2 = find_highest_pressure_single(nodes, distances, names, [start_frame])
+                    new_score = new_i2 * nodes[node2][0]
+                    start_frame = Frame(i2, new_score, cur2, opened | {node2}, path2 + [node2], remaining_score)
+                    dscore2, new_path2 = find_highest_pressure_single(nodes, distances, names, [start_frame])
                     if current_score + dscore2 > maximum:
                         maximum = current_score + dscore2
-                        final_path = (path1, path2)
+                        final_path = (path1, new_path2)
                         print("new high score found (player 2):", current_score + dscore2)
                     continue
 
@@ -182,10 +186,22 @@ def find_highest_pressure_double(nodes, distances, names, minutes):
                 new_score = current_score + dscore1 + dscore2
                 new_remaining = remaining_score - nodes[node1][0] - nodes[node2][0]
 
-                new_frame = Frame((new_i1, new_i2), new_score, (node1, node2), opened | {node1, node2},
+                new_opened = opened.copy()
+                new_opened.add(node1)
+                new_opened.add(node2)
+                # opened | {node1, node2}
+
+                new_frame = Frame((new_i1, new_i2), new_score, (node1, node2), new_opened,
                                   (path1 + [node1], path2 + [node2]), new_remaining)
                 stack.append(new_frame)
-                # print("adding new frame:", new_frame)
+                if node1 in path1 or node2 in path2:
+                    print("wtf is happening?", path1, node1, path2, node2)
+                    return 0, [[], []]
+
+                if len(path1) != len(set(path1)) or len(path2) != len(set(path2)):
+                    print("paths not equal!:", path1, path2)
+                    return 0, [[], []]
+                    # print("adding new frame:", new_frame)
 
         its += 1
         if its % 1000 == 0:
@@ -242,19 +258,32 @@ def best_two_paths(paths):
     best = 0
     final_paths = []
     list_paths = list(paths.items())
-    for i in range(len(paths)):
-        for j in range(i, len(paths)):
-            path1 = set(list_paths[i][0]) - {"AA"}
-            path2 = set(list_paths[j][0]) - {"AA"}
+
+    max_len = 0
+    min_len = float('inf')
+    for path, score in list_paths:
+        if len(path) > max_len:
+            max_len = len(path)
+        elif len(path) < min_len:
+            min_len = len(path)
+
+    cutoff = (max_len - min_len) // 3
+    list_paths = list(filter(lambda x: min_len + cutoff < len(x[0]), list_paths))
+
+    len_ = len(list_paths)
+    for i in range(len_):
+        for j in range(i, len_):
+            path1 = set(list_paths[i][0])
+            path2 = set(list_paths[j][0])
             v1, v2 = list_paths[i][1], list_paths[j][1]
-            if len(path1 & path2) == 0:
+            if path1 & path2 == {'AA'}:
                 if v1 + v2 > best:
                     best = v1 + v2
-                    final_paths = (['AA'] + list(path1), ['AA'] + list(path2))
+                    final_paths = (list(path1), list(path2))
         its += 1
-        print(its, best, len(paths))
+        print(its, best, len_)
 
-
+    print(final_paths)
     return best, final_paths[0], final_paths[1]
 
 
@@ -279,21 +308,28 @@ def main():
     distances, names = create_distance_matrix(nodes)
 
     # part 1
-    global start_node
-    global minutes
-    start_frame = Frame(minutes, 0, start_node, {start_node}, [start_node], sum(nodes[node][0] for node in names))
-    stack = [start_frame]
-    score1, final_path = find_highest_pressure_single(nodes, distances, names, stack)
-    print("part1: {} \n    {} {}".format(score1, score1, final_path))
+    def part1():
+        global start_node
+        global minutes
+        start_frame = Frame(minutes, 0, start_node, {start_node}, [start_node], sum(nodes[node][0] for node in names))
+        stack = [start_frame]
+        score1, final_path = find_highest_pressure_single(nodes, distances, names, stack)
+        print("part1: {} \n    {} {}".format(score1, score1, final_path))
 
-    # part 2
-    start_frame = Frame(26, 0, start_node, {start_node}, [start_node], sum(nodes[node][0] for node in names))
-    stack = [start_frame]
-    paths = find_all_paths(nodes, distances, names, stack)
-    score2, path1, path2 = best_two_paths(paths)
-    score21 = paths[tuple(sorted(path1))]
-    score22 = paths[tuple(sorted(path2))]
-    print("part2: {} \n    {} {}\n    {} {}".format(score2, score21, path1, score22, path2))
+    def part2():
+        # part 2
+        start_frame = Frame(26, 0, start_node, {start_node}, [start_node], sum(nodes[node][0] for node in names))
+        stack = [start_frame]
+        paths = find_all_paths(nodes, distances, names, stack)
+        score2, path1, path2 = best_two_paths(paths)
+        score21 = paths[tuple(sorted(path1))]
+        score22 = paths[tuple(sorted(path2))]
+        print("part2: {} \n    {} {}\n    {} {}".format(score2, score21, path1, score22, path2))
+
+    # part1()
+    # part2()
+    print(find_highest_pressure_double(nodes, distances, names, 26))
+
 
 
 if __name__ == "__main__":

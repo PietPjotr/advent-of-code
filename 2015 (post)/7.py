@@ -15,36 +15,42 @@ def deel1(lines):
             wires[line[-1]] = int(line[0])
 
     # print(wires)
-    iterations = 100
+    iterations = 1
     for i in range(iterations):
         for line in lines:
             cur_command = ''
             res = ''
+            if line[-1] in wires.keys():
+                continue
             for command in commands:
                 if command in line:
                     cur_command = command
 
                 if cur_command == 'AND' and line[0] in wires and line[2] in wires:
                     res = np.uint16(wires[line[0]]) & np.uint16(wires[line[2]])
-                    print(line)
+                    # print(line)
 
                 elif cur_command == 'OR' and line[0] in wires and line[2] in wires:
                     res = np.uint16(wires[line[0]]) | np.uint16(wires[line[2]])
-                    print(line)
+                    # print(line)
 
                 elif cur_command == 'LSHIFT' and line[0] in wires:
                     print(line)
                     res = np.uint16(wires[line[0]]) << int(line[2])
+                    # print(res, line)
 
                 elif cur_command == 'RSHIFT' and line[0] in wires:
                     res = np.uint16(wires[line[0]]) >> int(line[2])
-                    print(line)
+                    # print(line)
 
                 elif cur_command == 'NOT' and line[1] in wires:
                     res = ~ np.uint16(wires[line[1]])
-                    print(line)
+                    # print(line)
 
-                if res:
+                # else:
+                    # print("one of the two wires has no value yet", line)
+                if res != '':
+                    print("new wire found:", line)
                     wires[line[-1]] = res
 
     # lx -> a
@@ -54,6 +60,7 @@ def deel1(lines):
     # kh LSHIFT 1 -> lb
     # kg OR kf -> kh
 
+    print(len(wires))
     print(wires)
 
 
