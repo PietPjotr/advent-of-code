@@ -1,5 +1,6 @@
 from typing import List
 
+
 def input_as_string(filename: str) -> str:
     """returns the content of the input file as a string"""
     with open(filename) as f:
