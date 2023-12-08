@@ -4,81 +4,80 @@
 
 import parser
 import numpy as np
+import re
 
-
-def deel1(lines):
+def deel1(commands, all_args):
     wires = {}
-    commands = ['AND', 'OR', 'LSHIFT', 'RSHIFT', 'NOT']
 
-    for line in lines:
-        if line[0].isdigit() and len(line) == 3:
-            wires[line[-1]] = int(line[0])
-
-    # print(wires)
-    iterations = 1
+    iterations = 1000
     for i in range(iterations):
-        for line in lines:
-            cur_command = ''
+        for command, args in zip(commands, all_args):
+
             res = ''
-            if line[-1] in wires.keys():
+            # if we already know the value we go next
+            if args[-1] in wires.keys():
                 continue
-            for command in commands:
-                if command in line:
-                    cur_command = command
 
-                if cur_command == 'AND' and line[0] in wires and line[2] in wires:
-                    res = np.uint16(wires[line[0]]) & np.uint16(wires[line[2]])
-                    # print(line)
+            if command == '':
+                if args[0] in wires:
+                    res = wires[args[0]]
+                elif args[0].isdigit():
+                    res = int(args[0])
+                else:
+                    continue
 
-                elif cur_command == 'OR' and line[0] in wires and line[2] in wires:
-                    res = np.uint16(wires[line[0]]) | np.uint16(wires[line[2]])
-                    # print(line)
+                print("initiated wire: ", args)
 
-                elif cur_command == 'LSHIFT' and line[0] in wires:
-                    print(line)
-                    res = np.uint16(wires[line[0]]) << int(line[2])
-                    # print(res, line)
+            if command == 'AND':
+                if args[0] in wires and args[1] in wires:
+                    res = np.uint16(wires[args[0]]) & np.uint16(wires[args[1]])
+                elif args[0].isdigit() and args[1] in wires:
+                    res = np.uint16(args[0]) & np.uint16(wires[args[1]])
+                elif args[1].isdigit() and args[0] in wires:
+                    res = np.uint16(wires[args[0]]) & np.uint16(args[1])
+                elif args[0].isdigit() and args[1].isdigit():
+                    res = np.uint16(args[0]) & np.uint16(args[1])
+                else:
+                    continue
 
-                elif cur_command == 'RSHIFT' and line[0] in wires:
-                    res = np.uint16(wires[line[0]]) >> int(line[2])
-                    # print(line)
+            elif command == 'OR' and args[0] in wires and args[1] in wires:
+                res = np.uint16(wires[args[0]]) | np.uint16(wires[args[1]])
 
-                elif cur_command == 'NOT' and line[1] in wires:
-                    res = ~ np.uint16(wires[line[1]])
-                    # print(line)
+            elif command == 'LSHIFT' and args[0] in wires:
+                res = np.uint16(wires[args[0]]) << int(args[1])
 
-                # else:
-                    # print("one of the two wires has no value yet", line)
-                if res != '':
-                    print("new wire found:", line)
-                    wires[line[-1]] = res
+            elif command == 'RSHIFT' and args[0] in wires:
+                print(command, args)
+                res = np.uint16(wires[args[0]]) >> int(args[1])
+                print(args)
 
-    # lx -> a
-    # lw and lv ->lx
-    # lc LSHIFT 1 -> lw
-    # lb OR la -> lc
-    # kh LSHIFT 1 -> lb
-    # kg OR kf -> kh
+            elif command == 'NOT' and args[0] in wires:
+                res = ~ np.uint16(wires[args[0]])
+
+            if res != '':
+                print("new wire found:", args)
+                wires[args[-1]] = res
 
     print(len(wires))
     print(wires)
 
 
-def deel2(lines):
-    pass
-
-
 def main():
-    # lines = parser.input_as_string('inputs/7.txt')
     lines = parser.input_as_lines('inputs/7.txt')
-    # lines = parser.input_as_ints('inputs/7.txt')
-    # lines = parser.input_as_grid('inputs/7.txt')
-    lines_c = []
-    for line in lines:
-        lines_c.append(line.split(' '))
-    lines = lines_c
-    # print(lines)
-    deel1(lines)
+    commands = []
+    all_args = []
+    for args in lines:
+        command = re.findall('[A-Z]+', args)
+        arg = re.findall('[a-z0-9]+', args)
+        if not command:
+            command = ''
+        else:
+            command = command[0]
+
+        commands.append(command)
+        all_args.append(arg)
+
+    deel1(commands, all_args)
 
 
 if __name__ == "__main__":
