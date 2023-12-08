@@ -9,8 +9,7 @@ import re
 def deel1(commands, all_args):
     wires = {}
 
-    iterations = 1000
-    for i in range(iterations):
+    while 'a' not in wires:
         for command, args in zip(commands, all_args):
 
             res = ''
