@@ -54,8 +54,7 @@ def get_result(galaxies, distances):
     result = 0
     for i in range(len(galaxies)):
         for j in range(i, len(galaxies)):
-            if i != j:
-                result += distances[i][j]
+            result += distances[i][j]
     return result
 
 
