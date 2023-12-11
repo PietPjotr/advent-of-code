@@ -109,7 +109,7 @@ for i in range(len(lines)):
         loop_left = 0
         if (i, j) not in loop:
             for k in range(j):
-                if (i, k) in loop and lines[i][k] in ['|', 'F', '7']:
+                if (i, k) in loop and lines[i][k] in ['|', 'F', '7'ls]:
                     loop_left += 1
 
         if loop_left % 2 == 1:
