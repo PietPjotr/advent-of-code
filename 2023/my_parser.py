@@ -1,4 +1,8 @@
 from typing import List
+def input_split_by_emtpy_newline(filename: str) -> str:
+    """Returns the content of the input file as groups split by empty newline"""
+    lines = [el if el != '' else ' ' for el in input_as_lines(filename)]
+    return [[el for el in part] for part in ''.join(lines)]
 
 
 def input_as_string(filename: str) -> str:
