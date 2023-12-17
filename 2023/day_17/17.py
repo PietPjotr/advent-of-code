@@ -13,13 +13,17 @@ C = len(G[0])
 DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
+
 def get_score(distances):
+    """Note Got lucky with the end point being further than 4 points from a
+    turn otherwise would have had to change the score calculation."""
     min_dist = float('inf')
     for k, v in distances.items():
         if k[0] == R - 1 and k[1] == C - 1:
             if v < min_dist:
                 min_dist = v
     return min_dist
+
 
 def get_dirs(part, d, con):
     dirs = [0, 1, 2, 3]
@@ -66,6 +70,7 @@ for part in [1, 2]:
                 heapq.heappush(pq, (nl, nr, nc, nd, con + 1))
             else:
                 heapq.heappush(pq, (nl, nr, nc, nd, 1))
+
 
     print(get_score(distances))
 
