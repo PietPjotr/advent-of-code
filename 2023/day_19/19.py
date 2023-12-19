@@ -4,8 +4,7 @@ import my_parser as p
 from itertools import groupby
 import re
 
-lines = p.input_as_lines('inputs/inp.txt')
-lines = [list(g) for k, g in groupby(lines, key=lambda x: x == '') if not k]
+lines = p.input_split_by_emtpy_newline('inputs/inp.txt')
 
 fs, ps = lines
 parts = []
