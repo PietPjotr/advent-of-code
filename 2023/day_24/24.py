@@ -1,6 +1,8 @@
 import sys
 sys.path.append('..')
 import my_parser as p
+import numpy as np
+from numpy.linalg import inv
 
 lines = p.input_as_lines('inputs/inp.txt')
 lines = [((eval(one)), (eval(two))) for line in lines for one, two in [line.split(' @ ')]]
@@ -54,18 +56,48 @@ for i, line1 in enumerate(lines):
             continue
         elif x_intersect == True and y_intersect == True:
             res += 1
-            # print('parallel')
-            # print(line1)
-            # print(line2)
-            # print('intersection found at {}, {}'.format(x_intersect, y_intersect))
         elif a_bound < x_intersect < b_bound and a_bound < y_intersect < b_bound:
             if not in_future(x_intersect, x1, x2, xv1, xv2):
                 continue
             res += 1
-            # print(line1)
-            # print(line2)
-            # print('intersection found at {}, {}'.format(x_intersect, y_intersect))
         else:
             continue
 print(res)
 
+# part2
+# thank god for https://www.reddit.com/r/adventofcode/comments/18q40he/2023_day_24_part_2_a_straightforward_nonsolver/
+# eq for X and Y = (dy'-dy) X + (dx-dx') Y + (y-y') DX + (x'-x) DY = x' dy' - y' dx' - x dy + y dx
+# eq for X and Z = (dz'-dz) X + (dx-dx') Z + (z-z') DX + (x'-x) DZ = x' dz' - z' dx' - x dz + z dx
+A = []
+B = []
+C = []
+D = []
+for i in range(1):
+    p, v = lines[i]
+    x, y, z = p
+    dx, dy, dz = v
+    for j in range(i + 1, i + 5):
+        q, u = lines[j]
+        x_, y_, z_ = q
+        dx_, dy_, dz_ = u
+        A.append([dy_ - dy, dx - dx_, y - y_, x_ - x])
+        B.append(x_ * dy_ - y_ * dx_ - x * dy + y * dx)
+
+        C.append([dz_ - dz, dx - dx_, z - z_, x_ - x])
+        D.append(x_ * dz_ - z_ * dx_ - x * dz + z * dx)
+
+# solving linear system xy in xy variable
+A = np.array(A)
+B = np.array(B)
+xy = inv(A) @ B
+
+# solving linear system xz in xz variable
+C = np.array(C)
+D = np.array(D)
+xz = inv(C) @ D
+
+final = np.array([xy[0], xy[1], xz[1], xy[2], xy[3], xz[3]])
+
+# some fp errors could occur since int rounds down and not to nearest but for my case it works
+assert final[0] + final[1] + final[2] == int(final[0] + final[1] + final[2])
+print(int(final[0] + final[1] + final[2]))
