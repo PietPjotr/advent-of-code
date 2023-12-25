@@ -14,7 +14,8 @@ for r in range(R):
             s = (r, c)
 
 stack = set([s])
-for i in range(64):
+for i in range(10**5):
+    print(i)
     new_stack = set()
     for r, c in stack:
         for dr, dc in ((0,1), (1,0), (-1,0), (0,-1)):
@@ -23,7 +24,6 @@ for i in range(64):
             if 0 <= nr < R and 0 <= nc < C and G[nr][nc] == '.' and (nr,nc) and (nr,nc):
                 new_stack.add((nr, nc))
     stack = new_stack
-
 
 
 def show_visited(visited):
@@ -36,6 +36,5 @@ def show_visited(visited):
         print()
 
 show_visited(stack)
-show_visited(visited)
 
 print(len(set(stack)) + 1)
