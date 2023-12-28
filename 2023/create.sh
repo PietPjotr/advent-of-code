@@ -28,7 +28,12 @@ touch "$python_file"
 # Add standard code to the Python file
 echo "import sys
 sys.path.append('..')
-import my_parser as p" >> "$python_file"
+import my_parser as p
+
+L = p.input_as_lines('inputs/test.txt')
+G = p.input_as_grid('inputs/test.txt')
+R = len(G)
+C = len(G[0])" >> "$python_file"
 
 # Create the 'inputs' directory
 inputs_directory="${main_directory}/inputs"

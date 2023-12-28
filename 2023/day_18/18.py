@@ -50,36 +50,48 @@ def shoelace_pick(lines, parser=parse2):
 
 
 def wrong(lines, parser=parse2):
-    tot = 1
-    width = 1
-    for line in lines:
+    tot = 0
+    width = 0
+    right_down_border = 0
+    prev = -1
+    for i, line in enumerate(lines):
         d, l = parser(line)
 
         add = 0
         if d == 1:
             width += l
-            add = l
+            if prev == 2:
+                right_down_border += 1
 
         if d == 3:
-            add = l + 1
-            width -= l - 1
+            width -= l
+            if prev == 2:
+                right_down_border += l
 
         if d == 2:
-            add = width * (l - 1)
-        if d == 0:
-            add = -width * (l - 2)
-        print(tot, add, l, width)
-        tot += add
+            add = width * l
+            right_down_border += l
 
-    print(tot)
+        if d == 0:
+            if prev == 1:
+                add = -width * (l - 1)
+            else:
+                add = -width * l
+
+        # print(str(tot) + ' + ' + str(add) + ' = ' + str(tot + add), 'width', width, right_down_border)
+        tot += add
+        prev = d
+
+    print(tot + right_down_border + 1)  # 1 is for the top right staring corner
 
 
 lines = p.input_as_lines('inputs/test.txt')
 lines = [line.split(' ') for line in lines]
 
-# wrong(lines, parse2)
+# wrong(lines, parse1)
 
 shoelace_pick(lines, parse1)
+# wrong(lines, parse2)
 shoelace_pick(lines, parse2)
 
 

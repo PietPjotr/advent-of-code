@@ -90,7 +90,7 @@ def p2():
     stack = [(start, 0, set())]
     while stack:
         (r, c), d, visited = stack.pop()
-        if (r, c) in visited:
+        if (r, c) in visited:8
             continue
         visited.add((r, c))
         if (r, c) == end:

@@ -11,13 +11,12 @@ lines = [((eval(one)), (eval(two))) for line in lines for one, two in [line.spli
 a_bound = 200000000000000
 b_bound = 400000000000000
 
-# a_bound = 7
-# b_bound = 27
 
 def get_coefficients(x, vx, y, vy):
     a = vy / vx
     b = y - a * x
     return a, b
+
 
 def intersect(a, c, b, d):
     if a == b:
@@ -43,7 +42,6 @@ def in_future(x_intersect, x1, x2, xv1, xv2):
 
 res = 0
 for i, line1 in enumerate(lines):
-    # print(line1)
     x1, y1 = line1[0][:2]
     xv1, yv1 = line1[1][:2]
     a1, b1, = get_coefficients(x1, xv1, y1, yv1)
@@ -72,19 +70,20 @@ A = []
 B = []
 C = []
 D = []
-for i in range(1):
-    p, v = lines[i]
-    x, y, z = p
-    dx, dy, dz = v
-    for j in range(i + 1, i + 5):
-        q, u = lines[j]
-        x_, y_, z_ = q
-        dx_, dy_, dz_ = u
-        A.append([dy_ - dy, dx - dx_, y - y_, x_ - x])
-        B.append(x_ * dy_ - y_ * dx_ - x * dy + y * dx)
 
-        C.append([dz_ - dz, dx - dx_, z - z_, x_ - x])
-        D.append(x_ * dz_ - z_ * dx_ - x * dz + z * dx)
+i = 0
+p, v = lines[i]
+x, y, z = p
+dx, dy, dz = v
+for j in range(i + 1, i + 5):
+    q, u = lines[j]
+    x_, y_, z_ = q
+    dx_, dy_, dz_ = u
+    A.append([dy_ - dy, dx - dx_, y - y_, x_ - x])
+    B.append(x_ * dy_ - y_ * dx_ - x * dy + y * dx)
+
+    C.append([dz_ - dz, dx - dx_, z - z_, x_ - x])
+    D.append(x_ * dz_ - z_ * dx_ - x * dz + z * dx)
 
 # solving linear system xy in xy variable
 A = np.array(A)
