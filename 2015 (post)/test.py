@@ -1,30 +1,39 @@
-import sys
-sys.path.append('..')
-import my_parser as p
-from itertools import combinations
+from collections import defaultdict
+import re
 
-L = p.input_as_lines('inputs/inp.txt')
+with open('inputs/inp.txt') as f:
+    lines = [x.strip().split() for x in f.readlines()]
 
-liters = 150
-
-lines = [int(el) for el in L]
-
-iis = list(range(len(lines)))
-combs = set()
-for i in range(4, 19):
-    cs = set([comb for comb in combinations(iis, i) if sum([lines[i] for i in comb]) == 150])
-    combs = combs.union(cs)
-
-print(len(combs))
+replacements = [(x[0], x[2]) for x in lines[:-2]]
+initial = lines[-1][0]
 
 
-def solve2(combs):
-    p2 = 0
-    m = min([len(el) for el in combs])
-    for el in combs:
-        if len(el) == m:
-            p2 += 1
-    print(p2)
+# Part one
+def make_combinations(s):
+    for r in replacements:
+        for m in re.finditer(r[0], s):
+            yield s[:m.start()] + r[1] + s[m.end():]
 
 
-solve2(combs)
+print(len(set(make_combinations(initial))))
+
+
+# Part two
+# Apparently, the greedy approach works just fine.
+def make_removals(initial):
+    for r in replacements:
+        for m in re.finditer(r[1], initial):
+            yield initial[:m.start()] + r[0] + initial[m.end():]
+
+
+s = initial
+i = 0
+while s != 'e':
+    shortest_len = float('inf')
+    for removal in make_removals(s):
+        if len(removal) < shortest_len:
+            shortest_len = len(removal)
+            shortest = removal
+    s = shortest
+    i += 1
+print(i)
