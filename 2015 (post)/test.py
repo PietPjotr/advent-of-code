@@ -1,6 +1,8 @@
 import collections
 import itertools
 import timeit
+import random
+import math
 
 def prime_factors(n):
     i = 2
@@ -22,7 +24,7 @@ def prod(iterable):
     return result
 
 
-def get_divisors(n):
+def get_divisors_fast(n):
     pf = prime_factors(n)
 
     pf_with_multiplicity = collections.Counter(pf)
@@ -35,10 +37,44 @@ def get_divisors(n):
     for prime_power_combo in itertools.product(*powers):
         yield prod(prime_power_combo)
 
-# time the get_divisors function:
-start = timeit.default_timer()
-for num in range(1, 1000):
-    get_divisors(num)
-end = timeit.default_timer()
-print(end - start)
+
+def get_divisors_slow(num):
+    divs = []
+    end = int(math.sqrt(num) + 1)
+    for i in range(1, end):
+        if num % i == 0:
+            divs.append(i)
+            divs.append(num // i)
+    return divs
+
+
+def get_divisors_test(num):
+    divs = set()
+    end = math.sqrt(num) + 1
+    primes = list(prime_factors(num))
+    # print(primes)
+    for prime in primes:
+        delta = prime
+        while num % prime == 0 and prime < end:
+            divs.add(prime)
+            divs.add(num // prime)
+            prime += delta
+
+    divs.add(1)
+    divs.add(num)
+    return divs
+
+
+def time_funcs():
+    nums = [random.randint(1, 10**10) for _ in range(100000)]
+
+
+    start = timeit.default_timer()
+    for num in nums:
+        get_divisors_fast(num)
+    end = timeit.default_timer()
+    print(end - start)
+
+
+time_funcs()
 
