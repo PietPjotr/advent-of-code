@@ -39,8 +39,8 @@ def win(player, boss):
 
 
 def add_stats(player, weapon, armor, ring1, ring2):
-    player[1] += weapon[1] + ring1[1] + ring2[1]
-    player[2] += armor[2] + ring1[2] + ring2[2]
+    player[1] = weapon[1] + ring1[1] + ring2[1]
+    player[2] = armor[2] + ring1[2] + ring2[2]
     return player
 
 

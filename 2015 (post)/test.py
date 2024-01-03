@@ -1,80 +1,80 @@
-import collections
-import itertools
-import timeit
 import random
-import math
 
-def prime_factors(n):
-    i = 2
-    while i * i <= n:
-        if n % i == 0:
-            n /= i
-            yield i
-        else:
-            i += 1
+def magic_missile(spell):
+    global bHp
+    bHp -= 4
 
-    if n > 1:
-        yield n
+def drain(spell):
+    global bHp, mHp
+    bHp -= 2
+    mHp += 2
 
+def shield(spell):
+    global mDef
+    mDef = 7
+    recast(spell)
 
-def prod(iterable):
-    result = 1
-    for i in iterable:
-        result *= i
-    return result
+def poison(spell):
+    global bHp
+    bHp -= 3
+    recast(spell)
 
+def recharge(spell):
+    global mana
+    mana += 101
+    recast(spell)
 
-def get_divisors_fast(n):
-    pf = prime_factors(n)
+def recast(spell):
+    global toCast, tmpCast, mDef
+    spell['turns'] -= 1
+    if spell['turns'] > 0:
+        tmpCast[spell['name']] = spell
+    elif spell['turns'] <= 0 and spell['name'] == 'shield':
+        mDef = 0
 
-    pf_with_multiplicity = collections.Counter(pf)
+def cast():
+    global toCast, tmpCast
+    for index in toCast:
+        spell = toCast[index]
+        spell['spell'](spell)
+    toCast = tmpCast.copy()
+    tmpCast = {}
 
-    powers = [
-        [factor ** i for i in range(count + 1)]
-        for factor, count in pf_with_multiplicity.items()
-    ]
+spells = [
+        {'name': 'magic_missile', 'cost': 53,  'turns': 1, 'spell': lambda spell: magic_missile(spell)},
+        {'name': 'drain',         'cost': 73,  'turns': 1, 'spell': lambda spell: drain(spell)},
+        {'name': 'shield',        'cost': 113, 'turns': 6, 'spell': lambda spell: shield(spell)},
+        {'name': 'poison',        'cost': 173, 'turns': 6, 'spell': lambda spell: poison(spell)},
+        {'name': 'recharge',      'cost': 229, 'turns': 5, 'spell': lambda spell: recharge(spell)}
+        ]
 
-    for prime_power_combo in itertools.product(*powers):
-        yield prod(prime_power_combo)
-
-
-def get_divisors_slow(num):
-    divs = []
-    end = int(math.sqrt(num) + 1)
-    for i in range(1, end):
-        if num % i == 0:
-            divs.append(i)
-            divs.append(num // i)
-    return divs
-
-
-def get_divisors_test(num):
-    divs = set()
-    end = math.sqrt(num) + 1
-    primes = list(prime_factors(num))
-    # print(primes)
-    for prime in primes:
-        delta = prime
-        while num % prime == 0 and prime < end:
-            divs.add(prime)
-            divs.add(num // prime)
-            prime += delta
-
-    divs.add(1)
-    divs.add(num)
-    return divs
-
-
-def time_funcs():
-    nums = [random.randint(1, 10**10) for _ in range(100000)]
-
-
-    start = timeit.default_timer()
-    for num in nums:
-        get_divisors_fast(num)
-    end = timeit.default_timer()
-    print(end - start)
-
-
-time_funcs()
-
+m = float('inf')
+while True:
+    bHp, bAtt = 71, 10
+    mHp, mDef, mana = 50, 0, 500
+    cnt, toCast, tmpCast = 0, {}, {}
+    win, lose = False, False
+    while not any([win, lose]):
+        # my turn
+        mHp -= 1 # comment for part 1
+        cast()
+        if mana < 53 or mHp <= 0:
+            lose = True
+            break
+        elif bHp <= 0:
+            win = True
+            break
+        spell = random.choice([spell.copy() for spell in spells \
+            if spell['name'] not in toCast and spell['cost'] <= mana])
+        mana -= spell['cost']
+        cnt += spell['cost']
+        toCast[spell['name']] = spell
+        # boss turn
+        cast()
+        if bHp <= 0:
+            win = True
+            break
+        mHp -= (bAtt - mDef) if bAtt - mDef > 0 else 1
+    if win and cnt < m:
+        m = cnt
+        print(cnt)
