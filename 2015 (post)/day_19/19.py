@@ -2,6 +2,7 @@ import sys
 sys.path.append('..')
 import my_parser as p
 import heapq
+import re
 
 L = p.input_as_lines('inputs/inp.txt')
 
@@ -17,10 +18,9 @@ for rule in rules:
 
 
 def replace(mol):
-    sources = replacements.keys()
     distinct = set()
     for i in range(len(mol)):
-        for source in sources:
+        for source in replacements:
             if mol[i:].startswith(source):
                 for to in replacements[source]:
                     new = mol[:i] + to + mol[min(i + len(source), len(mol)):]
@@ -32,6 +32,7 @@ def p1():
     p1 = replace(mol)
     print(len(p1))
 
+p1()
 
 def removals(mol):
     distinct = set()
@@ -41,7 +42,6 @@ def removals(mol):
                 if mol[i:].startswith(dest):
                     new = mol[:i] + source + mol[min(i + len(dest), len(mol)):]
                     distinct.add(new)
-    # return sorted(list(distinct), key=lambda x: len(x))
     return distinct
 
 
@@ -64,28 +64,17 @@ def solve2_luck():
 
     print(i)
 
+
 # solve2_luck()
 
-def solve2(mol):
-    init_len = len(mol)
-    start = mol
-    i = 1
-    hq = [(len(start), 0, start, i)]
-    heapq.heapify(hq)
-    while hq:
-        cur_len, same, mol, i = heapq.heappop(hq)
-        print(i, len(mol))
-        if mol == 'e':
-            print(i - 1)
-        if same > 2:
-            continue
-        neighs = removals(mol)
-        for neigh in neighs:
-            if len(neigh) == len(mol):
-                same += 1
-            else:
-                same = 0
-            heapq.heappush(hq, ((init_len - len(neigh)) / i, same, neigh, i + 1))
+# wtf: https://www.reddit.com/r/adventofcode/comments/3xflz8/comment/cy4etju
+def solve2():
 
-# solve2(mol)
+    print(
+        len(re.findall(r"[A-Z]", mol))
+        - 2 * len(re.findall(r"Rn", mol))
+        - 2 * len(re.findall(r"Y", mol))
+        - 1
+    )
 
+solve2()

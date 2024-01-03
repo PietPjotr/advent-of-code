@@ -1,39 +1,44 @@
-from collections import defaultdict
-import re
+import collections
+import itertools
+import timeit
 
-with open('inputs/inp.txt') as f:
-    lines = [x.strip().split() for x in f.readlines()]
+def prime_factors(n):
+    i = 2
+    while i * i <= n:
+        if n % i == 0:
+            n /= i
+            yield i
+        else:
+            i += 1
 
-replacements = [(x[0], x[2]) for x in lines[:-2]]
-initial = lines[-1][0]
-
-
-# Part one
-def make_combinations(s):
-    for r in replacements:
-        for m in re.finditer(r[0], s):
-            yield s[:m.start()] + r[1] + s[m.end():]
-
-
-print(len(set(make_combinations(initial))))
+    if n > 1:
+        yield n
 
 
-# Part two
-# Apparently, the greedy approach works just fine.
-def make_removals(initial):
-    for r in replacements:
-        for m in re.finditer(r[1], initial):
-            yield initial[:m.start()] + r[0] + initial[m.end():]
+def prod(iterable):
+    result = 1
+    for i in iterable:
+        result *= i
+    return result
 
 
-s = initial
-i = 0
-while s != 'e':
-    shortest_len = float('inf')
-    for removal in make_removals(s):
-        if len(removal) < shortest_len:
-            shortest_len = len(removal)
-            shortest = removal
-    s = shortest
-    i += 1
-print(i)
+def get_divisors(n):
+    pf = prime_factors(n)
+
+    pf_with_multiplicity = collections.Counter(pf)
+
+    powers = [
+        [factor ** i for i in range(count + 1)]
+        for factor, count in pf_with_multiplicity.items()
+    ]
+
+    for prime_power_combo in itertools.product(*powers):
+        yield prod(prime_power_combo)
+
+# time the get_divisors function:
+start = timeit.default_timer()
+for num in range(1, 1000):
+    get_divisors(num)
+end = timeit.default_timer()
+print(end - start)
+
