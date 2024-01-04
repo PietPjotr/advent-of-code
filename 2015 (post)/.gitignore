@@ -1,2 +1,4 @@
 inputs/
 *.txt
+*/inputs/
+*__pycache__/

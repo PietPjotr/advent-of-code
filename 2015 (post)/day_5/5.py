@@ -1,4 +1,6 @@
-import parser
+import sys
+sys.path.append('..')
+import my_parser as p
 
 
 def deel1(lines):
@@ -67,7 +69,7 @@ def deel2(lines):
 
 def main():
 
-    lines = parser.input_as_lines('inputs/5.txt')
+    lines = p.input_as_lines('inputs/inp.txt')
 
     deel1(lines)
     deel2(lines)

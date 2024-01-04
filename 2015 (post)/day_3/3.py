@@ -1,7 +1,9 @@
-import parser
+import sys
+sys.path.append('..')
+import my_parser as p
+
 
 def deel1(lines):
-    # lines = '^v^v^v^v^v'
     x = 0
     y = 0
     xr = 0
@@ -28,9 +30,6 @@ def deel1(lines):
             if house >= 1:
                 answer += 1
     print(answer)
-    print(len(lines))
-
-
 
 
 def deel2(lines):
@@ -74,14 +73,13 @@ def deel2(lines):
             if house >= 1:
                 answer += 1
     print(answer)
-    print(len(lines))
+
 
 def main():
-    lines = parser.input_as_string('inputs/3.txt')
-    # lines = parser.input_as_lines('inputs/3.txt')
-    # lines = parser.input_as_ints('inputs/3.txt')
-    # lines = parser.input_as_grid('inputs/3.txt')
+    lines = p.input_as_string('inputs/inp.txt')
+    deel1(lines)
     deel2(lines)
+
 
 if __name__ == "__main__":
     main()

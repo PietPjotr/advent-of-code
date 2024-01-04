@@ -1,10 +1,11 @@
-import parser
+import sys
+sys.path.append('..')
+import my_parser as p
 
 
 def turn_on(grid, x1, y1, x2, y2):
     delta_x = abs(x1 - x2)
     delta_y = abs(y1 - y2)
-    # print(delta_x, delta_y)
 
     for i in range(delta_x + 1):
         for j in range(delta_y + 1):
@@ -125,16 +126,13 @@ def deel2(lines):
 
 
 def main():
-    # lines = parser.input_as_string('inputs/6.txt')
-    lines = parser.input_as_lines('inputs/6.txt')
-    # lines = parser.input_as_ints('inputs/6.txt')
-    # lines = parser.input_as_grid('inputs/6.txt')
-    # lines = ['turn on 499,499 through 500,500']
+    lines = p.input_as_lines('inputs/inp.txt')
 
     lines_a = []
     for line in lines:
         lines_a.append(line.split(' '))
     lines = lines_a
+    deel1(lines)
     deel2(lines)
 
 

@@ -1,9 +1,27 @@
-import parser
+import sys
+sys.path.append('..')
+import my_parser as p
 import re
 
 
-def deel2(lines):
-    lines = parser.input_as_lines('inputs/8.txt')
+lines = p.input_as_lines('inputs/inp.txt')
+
+
+def p1(lines):
+    chars = []
+    our_chars = []
+    for line in lines:
+        chars.append(len(line))
+        inner = line[1:-1]
+        res = re.findall(r'(\\{2}|\\\"|\\x[0-9a-f]{2}|[a-z])', inner)
+
+        our_chars.append(len(res))
+
+    res = sum(chars) - sum(our_chars)
+    print(res)
+
+
+def p2(lines):
     special_seqs = [r'\\', r'\"']
     new_strings = []
     for line in lines:
@@ -24,7 +42,6 @@ def deel2(lines):
             if not matched:
                 new_string += line[i]
 
-        print('"{}"'.format(new_string))
         new_strings.append('"{}"'.format(new_string))
 
     len_big = [len(st) for st in new_strings]
@@ -32,24 +49,5 @@ def deel2(lines):
     print(sum(len_big) - sum(len_small))
 
 
-def deel1(lines):
-
-    chars = []
-    our_chars = []
-    for line in lines:
-        chars.append(len(line))
-        inner = line[1:-1]
-        res = re.findall(r'(\\{2}|\\\"|\\x[0-9a-f]{2}|[a-z])', inner)
-
-        our_chars.append(len(res))
-
-    res = sum(chars) - sum(our_chars)
-    print(res)
-
-def main():
-    lines = parser.input_as_lines('inputs/8.txt')
-    deel1(lines)
-    deel2(lines)
-
-if __name__ == "__main__":
-    main()
+p1(lines)
+p2(lines)
