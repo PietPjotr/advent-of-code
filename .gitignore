@@ -2,4 +2,4 @@
 duunk/
 .idea/
 *inputs/
-*__pycache__/
+**/__pycache__/
