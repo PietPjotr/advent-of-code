@@ -1,4 +1,5 @@
 *.txt
-inputs/
 duunk/
 .idea/
+*inputs/
+*__pycache__/
