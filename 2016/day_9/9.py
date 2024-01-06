@@ -45,5 +45,6 @@ def p2(line):
         i += 1
     return res2
 
+
 print(p1())
 print(p2(line))
