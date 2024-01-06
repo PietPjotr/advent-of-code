@@ -4,9 +4,7 @@ import my_parser as p
 from copy import deepcopy
 
 L = p.input_as_lines('inputs/inp.txt')
-G = G = [[el for el in line] for line in L]
-R = len(G)
-C = len(G[0])
+
 
 def show(grid):
     for row in grid:
@@ -14,6 +12,7 @@ def show(grid):
             print(el, end='')
         print()
     print()
+
 
 C = 50
 R = 6
@@ -41,13 +40,11 @@ for line in L:
 
     grid = next_grid
 
-show(grid)
-
 p1 = 0
 for row in grid:
     for el in row:
         if el == '#':
             p1 += 1
 
-
 print(p1)
+show(grid)
