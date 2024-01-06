@@ -8,6 +8,7 @@ L = p.input_as_lines('inputs/inp.txt')
 line = L[0]
 line = line.strip()
 
+
 def p1():
     res = ''
     i = 0
