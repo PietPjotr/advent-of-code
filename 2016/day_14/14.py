@@ -49,10 +49,8 @@ def solve(hash_func):
             if window[0] == window[1] == window[2]:
                 char = window[0]
                 b = in_next(hashes, salt + 1, salt + 1001, char)
-                # print(salt, b)
                 if b:
                     keys.append(salt)
-                    # print(salt)
                 break
         salt += 1
 
