@@ -2,7 +2,8 @@ import sys
 sys.path.append('..')
 import my_parser as p
 
-inp = 1352
+L = p.input_as_lines('inputs/inp.txt')
+inp = int(L[0])
 R = 100
 C = 100
 start = (1, 1)
