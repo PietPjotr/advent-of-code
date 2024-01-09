@@ -5,7 +5,7 @@ from itertools import combinations
 from copy import deepcopy
 sys.setrecursionlimit(5000)
 
-L = p.input_as_lines('inputs/test.txt')
+L = p.input_as_lines('inputs/inp.txt')
 G = G = [[el for el in line] for line in L]
 R = len(G)
 C = len(G[0])
@@ -101,7 +101,8 @@ def rec_solve(stack):
     while stack:
         res = None
         steps, cur_floor, floors = stack.pop(0)
-        # print(steps)
+        # if steps == 30:
+        #     print(steps)
 
         if len(floors[-1]) == n_items:
             print('solution found: {}'.format(steps))
@@ -143,6 +144,7 @@ def rec_solve(stack):
         res = rec_solve(next_stack)
         if res:
             return res
+
         next_stack = []
         if cur_floor + 1 in iis:
             for to_carry in items1:
@@ -177,6 +179,7 @@ def rec_solve(stack):
         res = rec_solve(next_stack)
         if res:
             return res
+
         next_stack = []
         if cur_floor - 1 in iis:
             for to_carry in items2:
