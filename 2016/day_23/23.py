@@ -52,10 +52,10 @@ def solve():
             print('something is wrong')
         i += 1
 
-
     print(regs['a'])
+
 
 # solve()
 
-print(math.factorial(7) + 76 * 84)
-print(math.factorial(12) + 76 * 84)
+print(math.factorial(7) + 6384)
+print(math.factorial(12) + 6384)
