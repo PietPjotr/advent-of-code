@@ -16,6 +16,7 @@ regs = {'a': int(inp, 2), 'b': 0, 'c': 0, 'd': 0}
 
 
 def solve():
+    # note: removed the toggle function since that did not appear in my input
     a = 0
     while True:
         i = 0
