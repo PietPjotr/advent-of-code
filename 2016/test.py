@@ -1,81 +1,65 @@
-import sys
-sys.path.append('..')
-import my_parser as p
-import re
-from copy import deepcopy
-import heapq
-
-L = p.input_as_lines('inputs/inp.txt')
-
-nodes = []
-
-for line in L[2:]:
-    nums = re.findall(r'[0-9]+', line)
-    x, y, size, used, avail, use = [int(n) for n in nums]
-    nodes.append([(x, y), size, used, avail, use])
-
-p1 = 0
-for node1 in nodes:
-    used = node1[2]
-    for node2 in nodes:
-        avail = node2[3]
-        if node1 != node2 and used != 0 and used <= avail:
-            p1 += 1
-
-# print(p1)
-
-avail = sorted([node[3] for node in nodes], reverse=True)
-R = max([node[0][1] for node in nodes]) + 1
-C = max([node[0][0] for node in nodes]) + 1
-
-max_avail = avail[0]
-graph = [['-' for c in range(C)] for r in range(R)]
-start = (0, 0)
-for node in nodes:
-    x, y = node[0]
-    if node[2] <= max_avail:
-        graph[y][x] = '.'
-    else:
-        graph[y][x] = '#'
-    if node[3] == max_avail:
-        start = node[0][::-1]
+from collections import defaultdict
+from math import factorial
 
 
-def show(graph, pos, target):
-    for r, row in enumerate(graph):
-        for c, node in enumerate(row):
-            if (r, c) == target:
-                print('G', end=' ')
-            elif (r, c) == pos:
-                print('-', end=' ')
-            else:
-                print(node, end=' ')
-        print()
-    print()
+with open('inputs/inp.txt') as f:
+    lines = [l.strip().split() for l in f.readlines()]
+for l in lines:
+    try:
+        l[1] = int(l[1])
+    except:
+        pass
+    try:
+        l[2] = int(l[2])
+    except:
+        pass
 
 
-target = (0, C - 1)
-stack = [[0 + C - 1, 0, start, target]]
-DP = set((start, target))
-while stack:
-    # Use heapq to pop the node with the smallest priority
-    _, steps, pos, target = heapq.heappop(stack)
-    if (pos, target) in DP:
-        continue
-    DP.add((pos, target))
-    if target == (0, 0):
-        print(steps)
-        break
-    r, c = pos
-    for dr, dc in [(-1, 0), (0, 1), (1, 0), (0, -1)]:
-        nr = r + dr
-        nc = c + dc
-        if 0 <= nr < R and 0 <= nc < C and graph[nr][nc] != '#':
-            npos = (nr, nc)
-            ntarget = deepcopy(target)
-            # check if the target gets swapped
-            if npos == target:
-                ntarget = deepcopy(pos)
+def run(regs, p=0):
+    old_b = 0
+    while True:
+        if p >= len(lines):
+            return regs['a']
+        ins = lines[p]
+        if ins[0] == 'cpy':
+            regs[ins[2]] = ins[1] if isinstance(ins[1], int) else regs[ins[1]]
+        elif ins[0] == 'inc':
+            regs[ins[1]] += 1
+        elif ins[0] == 'dec':
+            regs[ins[1]] -= 1
+        elif ins[0] == 'jnz':
+            val = ins[1] if isinstance(ins[1], int) else regs[ins[1]]
+            skip = ins[2] if isinstance(ins[2], int) else regs[ins[2]]
+            if val != 0:
+                p += skip - 1
+        elif ins[0] == 'tgl':
+            to_change = p + regs[ins[1]]
+            if to_change < len(lines):
+                l = lines[to_change]
+                if len(l) == 2:
+                    if l[0] == 'inc':
+                        l[0] = 'dec'
+                    else:
+                        l[0] = 'inc'
+                if len(l) == 3:
+                    if l[0] == 'jnz':
+                        if not isinstance(l[2], int):
+                            l[0] = 'cpy'
+                    else:
+                        l[0] = 'jnz'
 
-            # Use heapq to push the node with the updated priority
-            heapq.heappush(stack, (target[0] + target[1], steps + 1, npos, ntarget))
+        p += 1
+
+
+# Part one
+regs = defaultdict(int)
+regs['a'] = 7
+print(run(regs))
+
+# Part two
+# By watching the values of the registers whenever the value of regs['b']
+# changes, it becomes apparent that the output above is 7!, but with an
+# added value of regs['d'] * regs['c'] once regs['d'] is set again, in
+# my case, 7! + 91 * 73. The exact same values of regs['c'] and regs['d']
+# will be used in the case, where regs['a'] starts out being 12.
+print(factorial(12) + 91 * 73)
