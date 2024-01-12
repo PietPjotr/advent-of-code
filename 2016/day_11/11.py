@@ -115,8 +115,6 @@ def bfs(floors):
 
     return None
 
-# runs our recursive solution for this problem
-# floors = floors2
 
 def main():
     L = p.input_as_lines('inputs/inp.txt')
@@ -138,13 +136,9 @@ def main():
     floors2[0].append(('d', 'm'))
 
     # also time this function
-    start = time.time()
     print(bfs(floors))
-    print("part one took {} seconds".format(time.time() - start))
 
-    start = time.time()
     print(bfs(floors2))
-    print("part two took {} seconds".format(time.time() - start))
 
 
 if __name__ == '__main__':
