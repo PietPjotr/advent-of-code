@@ -3,8 +3,6 @@ sys.path.append('..')
 import my_parser as p
 from itertools import combinations
 from copy import deepcopy
-import heapq
-import time
 
 
 def valid(items):
