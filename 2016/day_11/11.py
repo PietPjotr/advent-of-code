@@ -41,9 +41,7 @@ def get_state(cur_floor, floors):
 
 
 def bfs(floors):
-    """Finds the solution in about 10 minutes, uses a queue and some state
-    collapsing/memoization to ensure that similar states are not considered
-    more than once."""
+    """Finds the solution in a few seconds"""
     n_items = 0
     for floor in floors:
         for _ in floor:
