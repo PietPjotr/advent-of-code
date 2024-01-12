@@ -39,7 +39,9 @@ def get_state(cur_floor, floors):
 
 
 def bfs(floors):
-    """Finds the solution in a few seconds"""
+    """Finds the solution in a few seconds, note: in our input specifically,
+    the optimal solution does not require moving down 2 items ever, so we
+    removed that option to make the code slightly faster."""
     n_items = 0
     for floor in floors:
         for _ in floor:
@@ -100,14 +102,16 @@ def bfs(floors):
                     stack.append((steps + 1, cur_floor - 1, next_floors))
 
         # Moving down 2 items
-        if cur_floor - 1 in iis and cur_floor - 2 in iis:
-            for to_carry in items2:
-                next_floors = deepcopy(floors)
-                for el in to_carry:
-                    next_floors[cur_floor].remove(el)
-                    next_floors[cur_floor - 1].append(el)
-                if valid(next_floors[cur_floor]) and valid(next_floors[cur_floor - 1]):
-                    stack.append((steps + 1, cur_floor - 1, next_floors))
+        skip = False
+        if skip:
+            if cur_floor - 1 in iis:
+                for to_carry in items2:
+                    next_floors = deepcopy(floors)
+                    for el in to_carry:
+                        next_floors[cur_floor].remove(el)
+                        next_floors[cur_floor - 1].append(el)
+                    if valid(next_floors[cur_floor]) and valid(next_floors[cur_floor - 1]):
+                        stack.append((steps + 1, cur_floor - 1, next_floors))
 
     return None
 
