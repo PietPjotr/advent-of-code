@@ -11,9 +11,9 @@ for line in L:
     for num in nums[1:]:
         g[nums[0]].append(num)
 
-connected = set()
 groups = set()
 for i in range(len(L)):
+    connected = set()
     stack = [i]
     while stack:
         el = stack.pop(0)
