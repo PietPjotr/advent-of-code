@@ -14,8 +14,8 @@ def reverse(l, i, length):
     size = len(l)
     l = l + l
     to_rev = l[i: i + length]
-    to_rev = to_rev[::-1]
-    l = l[0:i] + to_rev + l[i + length:]
+    rev = to_rev[::-1]
+    l = l[0:i] + rev + l[i + length:]
     ret = l[size: size + i] + l[i: size]
     return ret
 
@@ -37,15 +37,15 @@ print(res1[0] * res1[1])
 
 
 def dense(l):
-    temp = []
+    ret = []
     for i in range(len(l) // 16):
         window = l[16 * i: 16 * i + 16]
         block = window[0]
         for el in window[1:]:
             block ^= el
-        temp.append(block)
+        ret.append(block)
 
-    return temp
+    return ret
 
 
 def to_hex(l):
