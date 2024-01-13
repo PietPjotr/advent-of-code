@@ -12,10 +12,13 @@ l = [i for i in range(256)]
 
 def reverse(l, i, length):
     size = len(l)
+    # double the list to ensure wrap around goes right
     l = l + l
     to_rev = l[i: i + length]
     rev = to_rev[::-1]
     l = l[0:i] + rev + l[i + length:]
+    
+    # take the relevant slice of the doubled input list
     ret = l[size: size + i] + l[i: size]
     return ret
 
