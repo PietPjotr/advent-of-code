@@ -15,10 +15,10 @@ mapp = {'n':(0, 2),
 
 
 def get_distance(x, y):
-    # for x distance use 1 unit per distance, for diag-y use 1 unit
+    # for x distance use 1 unit per distance, for diagoal-y use 1 unit
     # and for vertical y use 2 units per distance, then calc by using the fact
     # that we can travel 1 y disance per x distance, and the remaining y's
-    # can be traveled directly vertically so we divide by 2
+    # can be traveled directly vertically so we divide that rest value by 2
     return abs(x) + max(0, (abs(y) - abs(x)) // 2)
 
 
