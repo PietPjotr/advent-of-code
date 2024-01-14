@@ -42,13 +42,11 @@ print(particle)
 def collide_all(particles):
     ret = []
     for i, p1 in enumerate(particles):
-        # print(i)
         add = True
         for j, p2 in enumerate(particles):
             if i == j:
                 continue
             if tuple(p1[0:3]) == tuple(p2[0:3]):
-            # if collide(p1, p2):
                 add = False
                 break
         if add:
