@@ -68,51 +68,44 @@ def program(pid, snd_queue, rcv_queue):
         ins = L[i].split()
         cmd = ins[0]
         reg = ins[1]
-
         if cmd == 'snd':
             val = regs[reg]
             snd_queue.put(val)
             send_count += 1
-
         elif cmd == 'set':
             val = regs[ins[2]] if ins[2] in regs else int(ins[2])
             regs[reg] = val
-
         elif cmd == 'add':
             val = regs[ins[2]] if ins[2] in regs else int(ins[2])
             regs[reg] += val
-
         elif cmd == 'mul':
             val = regs[ins[2]] if ins[2] in regs else int(ins[2])
             regs[reg] *= val
-
         elif cmd == 'mod':
             val = regs[ins[2]] if ins[2] in regs else int(ins[2])
             regs[reg] %= val
-
         elif cmd == 'rcv':
             if rcv_queue.empty():
                 times_waiting += 1
-                # we have waited too long so there is probably a deadlock
+                # we have waited too long so there is probably a deadlock so
+                # we terminat the currend program and send a signal to the
+                # other program to terminate as well
                 if times_waiting > 100000 and pid == 1:
                     print(send_count)
                     snd_queue.put('end')
                     return
                 continue
-
             else:
                 val = rcv_queue.get()
                 if val == 'end':
                     return
                 regs[reg] = val
-
         elif cmd == 'jgz':
             offset = regs[ins[2]] if ins[2] in regs else int(ins[2])
             val = regs[ins[1]] if ins[1] in regs else int(ins[1])
             if val > 0:
                 i += offset
                 continue
-
         i += 1
 
     return send_count
