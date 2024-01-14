@@ -1,6 +1,8 @@
 import sys
 sys.path.append('..')
 import my_parser as p
+# note to self, de input kan veranderen door het automatisch weghalen van
+# whitespace door vscode, dus vooral niet meer aan de input file komen.
 
 L = p.input_as_lines('inputs/inp.txt')
 G = G = [[el for el in line] for line in L]
@@ -39,6 +41,3 @@ while True:
 
 print(''.join(letters))
 print(steps)
-
-
-
