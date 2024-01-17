@@ -24,10 +24,8 @@ def p1():
 
 
 def p2():
-    for i in range(len(L)):
-        for j in range(len(L)):
-            el1 = L[i]
-            el2 = L[j]
+    for i, el1 in enumerate(L):
+        for el2 in L[i+1:]:
             same = 0
             for k in range(len(el1)):
                 if el1[k] == el2[k]:
