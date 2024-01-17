@@ -9,17 +9,11 @@ def p1():
     two = 0
     three = 0
     for el in L:
-        el = [(char, el.count(char)) for char in el]
-        Two = True
-        Three = True
-        for char, c in el:
-            if c == 3 and Three:
-                three += 1
-                Three = False
-            if c == 2 and Two:
-                two += 1
-                Two = False
-
+        counts = set([el.count(x) for x in el])
+        if 3 in counts:
+            three += 1
+        if 2 in counts:
+            two += 1
     return three * two
 
 
