@@ -45,6 +45,5 @@ for guard, minutes in guards.items():
         m2 = max(minutes)
         p2 = (guard, minutes.index(max(minutes)))
 
-
 print(p1[0] * p1[1])
 print(p2[0] * p1[1])
