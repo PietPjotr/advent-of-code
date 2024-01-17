@@ -8,13 +8,11 @@ G = G = [[el for el in line] for line in L]
 R = len(G)
 C = len(G[0])
 
-ks = []
-for l in L:
-    nums = re.findall(r'\d+', l)
-    ks.append(tuple([int(el) for el in nums]))
-
-ordered = sorted(zip(L, ks), key=lambda x: x[1])
-sort = [el[0] for el in ordered]
+# sort the values on the times by getting all the numbers and comparing
+# from year to second (the guard number will also be considered if times would
+# be equal but we know that no times will ever be equal so that won't be a
+# problem)
+sort = sorted(L, key=lambda x: tuple(map(int, re.findall(r'\d+', x))))
 
 guards = {}
 cur_guard = 0
