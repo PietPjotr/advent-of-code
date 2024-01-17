@@ -17,19 +17,36 @@ ordered = sorted(zip(L, ks), key=lambda x: x[1])
 sort = [el[0] for el in ordered]
 
 guards = {}
-guard = 0
+cur_guard = 0
 sleep = 0
 for line in sort:
-    times, rest = line.split('[ ')
+    times, rest = line.split('] ')
+    time = int(times[-2:])
     guard = re.findall(r'\d+', rest)
-    times = [int(el) for el in re.findall(r'\d+', times)]
     if guard:
-        guard = int(guard)
-        if guard not in guards:
-            guards[guard] = [0 for _ in range(60)]
+        cur_guard = int(guard[0])
+        if cur_guard not in guards:
+            guards[cur_guard] = [0 for _ in range(60)]
     else:
-        # find if we have a wakes up and add all the numbers in the
-        # the range wakes up - sleep to the minute in list of the guard
-        # in the guards dict
+        if 'wakes up' in rest:
+            for minute in range(sleep, time):
+                guards[cur_guard][minute] += 1
+        elif 'falls asleep' in rest:
+            sleep = time
+
+# calc score
+p1 = 0
+p2 = 0
+m1 = 0
+m2 = 0
+for guard, minutes in guards.items():
+    if sum(minutes) > m1:
+        m1 = sum(minutes)
+        p1 = (guard, minutes.index(max(minutes)))
+    if max(minutes) > m2:
+        m2 = max(minutes)
+        p2 = (guard, minutes.index(max(minutes)))
 
 
+print(p1[0] * p1[1])
+print(p2[0] * p1[1])
