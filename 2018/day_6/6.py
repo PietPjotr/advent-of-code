@@ -29,38 +29,24 @@ def find_closest(pos):
         return distances[0][1]
 
 
-def get_infinite_coords():
-    """Creates the set of all coords that have infinite area"""
-    infinite = set()
-    for r in range(min_r - 1, max_r + 2):
-        for c in [min_c, max_c]:
-            closest = find_closest((r, c))
-            if closest:
-                infinite.add((r, c))
-    for c in range(min_c - 1, max_c + 2):
-        for r in [min_r, max_r]:
-            closest = find_closest((r, c))
-            if closest:
-                infinite.add((r, c))
-
-    return infinite
-
-
-def get_points_to_coord():
+def get_structures():
     """Creates a dict with for every coord all the points that are closest to
     that coord"""
+    infinite = set()
     points = {coord: set() for coord in coords}
     for r in range(min_r - 1, max_r + 2):
         for c in range(min_c - 1, max_c + 2):
             closest = find_closest((r, c))
             if closest:
                 points[closest].add((r, c))
-    return points
+                if r == min_r - 1 or r == max_r + 1 or c == min_c - 1 or c == max_c + 1:
+                    infinite.add(closest)
+
+    return points, infinite
 
 
 def p1():
-    infinite = get_infinite_coords()
-    points = get_points_to_coord()
+    points, infinite = get_structures()
     p1 = 0
     for k, v in points.items():
         if k in infinite:
