@@ -11,18 +11,18 @@ C = len(G[0])
 
 
 class Unit:
-    def __init__(self, kind, pos):
+    def __init__(self, kind, pos, dmg=3):
         self.kind = kind
         self.r = pos[0]
         self.c = pos[1]
         self.hp = 200
-        self.dmg = 3
+        self.dmg = dmg
 
     def attack(self, target):
         target.hp -= self.dmg
 
-    def move(self, path):
-        nr, nc = path[0]
+    def move(self, pos):
+        nr, nc = pos
         self.r = nr
         self.c = nc
 
@@ -36,13 +36,8 @@ class Unit:
         return str(self)
 
 
-def sort_paths_by_coordinates(paths):
-    # Sort the paths based on the coordinates in reading order
-    return sorted(paths, key=lambda path: [(coord[0], coord[1]) for coord in path])
-
-
 class Game:
-    def __init__(self, grid):
+    def __init__(self, grid, attack_power=3):
         self.R = len(grid)
         self.C = len(grid[0])
         self.G = grid
@@ -57,7 +52,7 @@ class Game:
                     goblins.append(Unit('G', (r, c)))
                     self.G[r][c] = '.'
                 elif el == 'E':
-                    elves.append(Unit('E', (r, c)))
+                    elves.append(Unit('E', (r, c), attack_power))
                     self.G[r][c] = '.'
 
         self.goblins = goblins
@@ -69,18 +64,19 @@ class Game:
         all_positions.remove((unit.r, unit.c))
         target_positions = []
         for target in target_list:
+            if target.hp <= 0:
+                continue
             for dr, dc in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
                 nr = target.r + dr
                 nc = target.c + dc
                 if self.G[nr][nc] == '.' and (nr, nc) not in all_positions:
                     target_positions.append((nr, nc))
-        return target_positions
+        return set(target_positions)
 
     def find_closest_position(self, unit):
         used_positions = self.find_used_positions()
         queue = deque([(0, unit.r, unit.c)])
         target_positions = self.find_targets(unit)
-        # self.show(target_positions, '?')
         visited = set()
         positions = []
         while queue:
@@ -94,57 +90,40 @@ class Game:
                     queue.append((steps + 1, nr, nc))
                     visited.add((nr, nc))
 
-        # not sure if specifiying the key like this is actually necessary
         if positions:
             positions.sort(key=lambda x: (x[0], x[1]))
             distance = min([pos[0] for pos in positions])
             closest_positions = [pos[1] for pos in positions if pos[0] == distance]
-            # self.show(closest_positions, '!')
-            # self.show([closest_positions[0]], '+')
             return distance, closest_positions[0]
         return (-1, None)
 
-    def find_shortest_path_efficient(self, unit):
+    # bfs distance matrix from the closest target position
+    def find_next_position(self, unit):
         used_positions = self.find_used_positions()
-        queue = deque([(unit.r, unit.c, [])])
         target_positions = self.find_targets(unit)
+        _, closest_position = self.find_closest_position(unit)
+        if not closest_position:
+            return
+        distances = {(closest_position[0], closest_position[1]): 0}
+        queue = deque([(0, closest_position[0], closest_position[1])])
         while queue:
-            r, c, path = queue.popleft()
+            steps, r, c = queue.popleft()
             for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
                 nr = r + dr
                 nc = c + dc
-                if (nr, nc) not in path and self.G[nr][nc] == '.' and (nr, nc) not in used_positions:
-                    if (nr, nc) in target_positions:
-                        return path + [(nr, nc)]
-                    queue.append((nr, nc, path + [(nr, nc)]))
-        return []
+                if (nr, nc) not in distances and self.G[nr][nc] == '.' and (nr, nc) not in used_positions:
+                    distances[(nr, nc)] = steps + 1
+                    queue.append((steps + 1, nr, nc))
+
+        neighs = unit.get_neighbours()
+        neighs = [neigh for neigh in neighs if neigh in distances]
+        neighs.sort(key=lambda neigh: (distances[neigh], *neigh))
+        return neighs[0]
 
     def find_used_positions(self):
         goblin_positions = [(goblin.r, goblin.c) for goblin in self.goblins if goblin.hp > 0]
         elf_positions = [(elf.r, elf.c) for elf in self.elves if elf.hp > 0]
         return goblin_positions + elf_positions
-
-    def find_shortest_path_dfs(self, unit, max_steps, target):
-        all_positions = self.find_used_positions()
-        stack = [[0, unit.r, unit.c, []]]
-        paths = []
-        while stack:
-            steps, r, c, path = stack.pop()
-            if steps > max_steps:
-                continue
-            if (r, c) == target:
-                paths.append(path)
-                continue
-            for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
-                nr = r + dr
-                nc = c + dc
-                if (nr, nc) not in path and self.G[nr][nc] == '.' and (nr, nc) not in all_positions:
-                    stack.append((steps + 1, nr, nc, path + [(nr, nc)]))
-
-        if paths:
-            return sort_paths_by_coordinates(paths)[0]
-
-        assert False
 
     def find_target_list(self, unit):
         neighs = []
@@ -152,20 +131,24 @@ class Game:
             target_list = self.goblins
         elif unit.kind == 'G':
             target_list = self.elves
-        return target_list
+        return [un for un in target_list if un.hp > 0]
 
     def turn(self):
+        dps = True
         all_units = self.elves + self.goblins
         all_units.sort(key=lambda x: (x.r, x.c))
         for n, unit in enumerate(all_units):
-            # print(n, unit)
             if unit.hp <= 0:
                 continue
 
             target_list = self.find_target_list(unit)
+            if not target_list:
+                self.elves = [elf for elf in self.elves if elf.hp > 0]
+                self.goblins = [goblin for goblin in self.goblins if goblin.hp > 0]
+                return 'done'
 
             # check if we can attack
-            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list]):
+            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list if enemy.hp > 0]):
                 neighs = unit.get_neighbours()
                 attackable_units = [enemy for enemy in target_list if (enemy.r, enemy.c) in neighs and enemy.hp > 0]
                 if not attackable_units:
@@ -174,18 +157,13 @@ class Game:
                 unit.attack(attackable_units[0])
                 continue
 
-            # we cannot attack, see if we can move instead
-            steps, closest_position = self.find_closest_position(unit)
-            # code for no reachable positions so we continue
-            if steps == -1:
+            next_position = self.find_next_position(unit)
+            if not next_position:
                 continue
-            path = self.find_shortest_path_dfs(unit, steps, closest_position)
-
-            # move to the closest target
-            unit.move(path)
+            unit.move(next_position)
 
             # again find if we can attack
-            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list]):
+            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list if enemy.hp > 0]):
                 neighs = unit.get_neighbours()
                 attackable_units = [enemy for enemy in target_list if (enemy.r, enemy.c) in neighs and enemy.hp > 0]
                 if not attackable_units:
@@ -216,39 +194,46 @@ class Game:
                 print('   ', end='')
                 for unit in all_units:
                     if unit.r == r:
-                        print('{}({})'.format(unit.kind, unit.hp), end=', ')
+                        print('{}'.format(unit.hp), end=' ')
             print()
         print()
 
-    def show_hp(self):
-        all_units = self.elves + self.goblins
-        all_units.sort(key=lambda x: (x.r, x.c))
-        for r in range(R):
-            for unit in all_units:
-                if unit.r == r:
-                    print('{}({})'.format(unit.kind, unit.hp), end=', ')
-            print()
+
+def p1():
+    game = Game(deepcopy(G))
+    t = 0
+    while True:
+        completed_turns =  game.turn()
+        if completed_turns:
+            break
+        t += 1
+
+    final_hp = sum([g.hp for g in game.goblins if g.hp] + [e.hp for e in game.elves])
+    print(final_hp * t)
+
+
+def p2():
+    attack_power = 4
+    while True:
+        game = Game(deepcopy(G), attack_power)
+        no_elves = len(game.elves)
+        t = 0
+        while True:
+            done = game.turn()
+            if done:
+                break
+            t += 1
+
+        if len(game.elves) == no_elves:
+            final_hp = sum([g.hp for g in game.goblins if g.hp] + [e.hp for e in game.elves])
+            print(final_hp * t)
+            break
+        attack_power += 1
+
 
 def main():
-    game = Game(G)
-    print('Initially')
-    game.show()
-    t = 0
-    # for t in range(1):
-    while len(game.elves) > 0 and len(game.goblins) > 0:
-        game.turn()
-        t += 1
-        game.time = t
-        print(t)
-        # if t % 1 == 0:
-        #     print('After round: {}'.format(t))
-        #     game.show()
-    print('final')
-    game.show()
-    ft = t - 1
-    print(ft)
-    fhp = sum([g.hp for g in game.goblins] + [e.hp for e in game.elves])
-    print('Outcome: {} * {} = {}'.format(ft, fhp, ft * fhp))
+    p1()
+    p2()
 
 
 if __name__ == "__main__":
