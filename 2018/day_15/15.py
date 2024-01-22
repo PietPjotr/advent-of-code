@@ -27,7 +27,7 @@ class Unit:
         self.c = nc
 
     def get_neighbours(self):
-        return [(self.r - dr, self.c - dc) for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]]
+        return set([(self.r - dr, self.c - dc) for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]])
 
     def __str__(self):
         return str((self.kind, (self.r, self.c), self.hp, self.dmg))
@@ -42,6 +42,9 @@ class Game:
         self.C = len(grid[0])
         self.G = grid
         self.time = 0
+        self.p2 = False
+        if attack_power != 3:
+            self.p2 = True
 
         goblins = []
         elves = []
@@ -61,8 +64,7 @@ class Game:
     def find_targets(self, unit):
         target_list = self.find_target_list(unit)
         all_positions = self.find_used_positions()
-        all_positions.remove((unit.r, unit.c))
-        target_positions = []
+        target_positions = set()
         for target in target_list:
             if target.hp <= 0:
                 continue
@@ -70,8 +72,8 @@ class Game:
                 nr = target.r + dr
                 nc = target.c + dc
                 if self.G[nr][nc] == '.' and (nr, nc) not in all_positions:
-                    target_positions.append((nr, nc))
-        return set(target_positions)
+                    target_positions.add((nr, nc))
+        return target_positions
 
     def find_closest_position(self, unit):
         used_positions = self.find_used_positions()
@@ -79,26 +81,30 @@ class Game:
         target_positions = self.find_targets(unit)
         visited = set()
         positions = []
+        max_steps = float('inf')
         while queue:
             steps, r, c = queue.popleft()
+            if steps + 1 > max_steps:
+                continue
             for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
                 nr = r + dr
                 nc = c + dc
                 if (nr, nc) not in visited and self.G[nr][nc] == '.' and (nr, nc) not in used_positions:
                     if (nr, nc) in target_positions:
-                        positions.append((steps + 1, (nr, nc)))
+                        positions.append((nr, nc))
+                        max_steps = steps + 1
                     queue.append((steps + 1, nr, nc))
                     visited.add((nr, nc))
 
         if positions:
-            positions.sort(key=lambda x: (x[0], x[1]))
-            distance = min([pos[0] for pos in positions])
-            closest_positions = [pos[1] for pos in positions if pos[0] == distance]
-            return distance, closest_positions[0]
+            positions.sort()
+            return max_steps, positions[0]
         return (-1, None)
 
     # bfs distance matrix from the closest target position
     def find_next_position(self, unit):
+        target_found = False
+        neighs = unit.get_neighbours()
         used_positions = self.find_used_positions()
         target_positions = self.find_targets(unit)
         _, closest_position = self.find_closest_position(unit)
@@ -106,7 +112,7 @@ class Game:
             return
         distances = {(closest_position[0], closest_position[1]): 0}
         queue = deque([(0, closest_position[0], closest_position[1])])
-        while queue:
+        while queue and not target_found:
             steps, r, c = queue.popleft()
             for dr, dc in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
                 nr = r + dr
@@ -114,10 +120,11 @@ class Game:
                 if (nr, nc) not in distances and self.G[nr][nc] == '.' and (nr, nc) not in used_positions:
                     distances[(nr, nc)] = steps + 1
                     queue.append((steps + 1, nr, nc))
+                    if (nr, nc) in neighs:
+                        target_found = True
 
-        neighs = unit.get_neighbours()
         neighs = [neigh for neigh in neighs if neigh in distances]
-        neighs.sort(key=lambda neigh: (distances[neigh], *neigh))
+        neighs.sort(key=lambda neigh: (distances[neigh], neigh))
         return neighs[0]
 
     def find_used_positions(self):
@@ -126,56 +133,59 @@ class Game:
         return goblin_positions + elf_positions
 
     def find_target_list(self, unit):
-        neighs = []
         if unit.kind == 'E':
             target_list = self.goblins
         elif unit.kind == 'G':
             target_list = self.elves
         return [un for un in target_list if un.hp > 0]
 
+    def attack(self, unit, target_list):
+        neighs = unit.get_neighbours()
+        attackable_units = [enemy for enemy in target_list if (enemy.r, enemy.c) in neighs]
+        attackable_units.sort(key=lambda x: (x.hp, x.r, x.c))
+        unit.attack(attackable_units[0])
+        return
+
     def turn(self):
-        dps = True
         all_units = self.elves + self.goblins
         all_units.sort(key=lambda x: (x.r, x.c))
         for n, unit in enumerate(all_units):
             if unit.hp <= 0:
                 continue
 
+            # we find a unit with no target so we return
             target_list = self.find_target_list(unit)
             if not target_list:
-                self.elves = [elf for elf in self.elves if elf.hp > 0]
-                self.goblins = [goblin for goblin in self.goblins if goblin.hp > 0]
-                return 'done'
+                return 1
 
             # check if we can attack
-            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list if enemy.hp > 0]):
-                neighs = unit.get_neighbours()
-                attackable_units = [enemy for enemy in target_list if (enemy.r, enemy.c) in neighs and enemy.hp > 0]
-                if not attackable_units:
-                    continue
-                attackable_units.sort(key=lambda x: (x.hp, x.r, x.c))
-                unit.attack(attackable_units[0])
+            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list]):
+                self.attack(unit, target_list)
                 continue
 
+            # check if we can move
             next_position = self.find_next_position(unit)
             if not next_position:
                 continue
             unit.move(next_position)
 
-            # again find if we can attack
-            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list if enemy.hp > 0]):
-                neighs = unit.get_neighbours()
-                attackable_units = [enemy for enemy in target_list if (enemy.r, enemy.c) in neighs and enemy.hp > 0]
-                if not attackable_units:
-                    continue
-                attackable_units.sort(key=lambda x: (x.hp, x.r, x.c))
-                unit.attack(attackable_units[0])
+            # after moving, again check if we can attack
+            if any([(enemy.r, enemy.c) in unit.get_neighbours() for enemy in target_list]):
+                self.attack(unit, target_list)
                 continue
 
-        self.elves = [elf for elf in self.elves if elf.hp > 0]
-        self.goblins = [goblin for goblin in self.goblins if goblin.hp > 0]
+            # after the last attack we check if an elf just died
+            if self.p2 and any([elf.hp <= 0 for elf in self.elves]):
+                return 2
 
-    def show(self, positions=[], char='@', hp=True):
+    def get_score(self, t):
+        elves = [elf for elf in self.elves if elf.hp > 0]
+        goblins = [g for g in self.goblins if g.hp > 0]
+        all_units = elves + goblins
+        total_hp = sum([unit.hp for unit in all_units])
+        return t * total_hp
+
+    def show(self, positions={}, char='@', hp=True):
         goblin_positions = [(goblin.r, goblin.c) for goblin in self.goblins]
         elf_positions = [(elf.r, elf.c) for elf in self.elves]
         all_units = self.elves + self.goblins
@@ -183,7 +193,10 @@ class Game:
         for r in range(self.R):
             for c in range(self.C):
                 if (r, c) in positions:
-                    print(char, end='')
+                    d = positions[(r, c)]
+                    if d > 9:
+                        d = chr(ord('a') + (d - 10))
+                    print(d, end='')
                 elif (r, c) in goblin_positions:
                     print('G', end='')
                 elif (r, c) in elf_positions:
@@ -203,13 +216,12 @@ def p1():
     game = Game(deepcopy(G))
     t = 0
     while True:
-        completed_turns =  game.turn()
-        if completed_turns:
+        done = game.turn()
+        if done:
             break
         t += 1
 
-    final_hp = sum([g.hp for g in game.goblins if g.hp] + [e.hp for e in game.elves])
-    print(final_hp * t)
+    print(game.get_score(t))
 
 
 def p2():
@@ -220,14 +232,14 @@ def p2():
         t = 0
         while True:
             done = game.turn()
-            if done:
+            if done is not None:
                 break
             t += 1
 
-        if len(game.elves) == no_elves:
-            final_hp = sum([g.hp for g in game.goblins if g.hp] + [e.hp for e in game.elves])
-            print(final_hp * t)
+        if done == 1:
+            print(game.get_score(t))
             break
+
         attack_power += 1
 
 
