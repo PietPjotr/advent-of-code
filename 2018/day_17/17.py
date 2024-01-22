@@ -13,8 +13,9 @@ sys.path.append('..')
 import my_parser as p
 import re
 from collections import deque
+sys.setrecursionlimit(30)
 
-L = p.input_as_lines('inputs/inp.txt')
+L = p.input_as_lines('inputs/test.txt')
 
 clay = set()
 source = (0, 500)
@@ -62,10 +63,13 @@ def show(still_water=[], flow_water=[]):
 DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
+
+# wrong, only walks off the left side off a overflown bucket
 def create_still_water(clay):
     water = set()
     i = 0
-    while True:
+    for layer in range(52):
+    # while True:
         r, c = source
         d = 2
         rb = None
@@ -115,15 +119,11 @@ def create_still_water(clay):
             r = nr
             c = nc
             d = dd
-            li += 1
 
         i += 1
-        print(len(water))
     return water
 
-# bfs starting at the source and only plitting if we can go both right
-# and left at any point based on the visited set of course, we end when any
-# position is outside of the mar (maxr) of the clay
+
 def create_flow_water(clay, still_water):
     flow_water = []
     queue = deque([(source[0], source[1])])
@@ -149,9 +149,26 @@ def create_flow_water(clay, still_water):
     return set([pos for pos in visited if pos[0] <= mar])
 
 
+def still_rec(clay, water, r, c, d):
+    show(water)
+    if r > mar + 1:
+        return
+
+    for dd in [2, 3, 1]:
+        nr = r + DR[dd]
+        nc = c + DC[dd]
+        if (nr, nc) not in water | clay:
+            water.add((nr, nc))
+            still_rec(clay, water, nr, nc, dd)
+    return
+
+
 def p1():
+    # still_water = set()
+    # still_water = still_rec(clay,still_water, *source, 2)
     still_water = create_still_water(clay)
     flow_water = create_flow_water(clay, still_water)
+    show(still_water, flow_water)
     print(len(still_water) + len(flow_water))
 
 p1()
