@@ -6,10 +6,9 @@ from collections import deque
 sys.setrecursionlimit(40)
 import time
 
-L = p.input_as_lines('inputs/test2.txt')
+L = p.input_as_lines('inputs/inp.txt')
 
 clay = set()
-source = (0, 500)
 verbose = 0
 
 for l in L:
@@ -34,7 +33,13 @@ mic, mac = min(c), max(c)
 
 
 def show(still_water=[], flow_water=[]):
+    print(' ', end='')
+    for i in range(max(450, mic), min(550, mac + 1)):
+        i = str(i)
+        print(i[-1], end='')
+    print()
     for r in range(0, min(100, maxr + 1)):
+        print(str(r)[-1], end='')
         for c in range(max(450, mic), min(550, mac + 1)):
             if (r, c) == source:
                 print('+', end='')
@@ -56,21 +61,41 @@ DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
 
-# to update: change source whenever we can start going down, and start dropping
-# layers from there, do that to/from both sides: right and left.
+source = (0, 500)
+
+# 1. fill up the first bucket using the normal source method (granted pretty
+# slow since we have to keep going down pretty far if we are high up)
+# 2. Detect when we start going down from going either left or right
+# 3. Add those detected positions as new sources to the stack
+# 4. Discontinue a stack frame if any position reaches below the maxr
+
+# NOTE: problem: buckets inside of buckets: we don't go back up the source
+# stack to start dropping from higher up, so maybe we could do that? Keep a
+# stack of source coords and if the current source end up in the water/visited
+# set, we simply go back to the previous source coord? Might be tricky though
+# since now we just keep adding the current source if there are no break
+# conditions so we might need to change that also *shrug*.
+# another thing, maybe there is a better way to add sources both from the left
+# and right when overflowing, but we might get back to the same problem that is
+# how do we backtrack if we just add all the sources at every intersection?
+# idk this shit's crazy
 def create_still_water(clay):
     water = set()
-    i = 0
-    # for layer in range(52):
-    while True:
-        r, c = source
+    stack = [source]
+    for sf in range(70):
+    # while stack:
+        print(len(water))
+        s = stack.pop()
+        r, c = s
+        if r > maxr or c < mic or c > mac:
+            # print('source {} discontinued'.format(s))
+            continue
         d = 2
         rb = None
         lb = None
         li = 0
+        new = False
         while True:
-            if r > maxr:
-                return water
             if d == 2:
                 dds = [2, 3, 1]
             elif d == 3:
@@ -85,6 +110,17 @@ def create_still_water(clay):
                 if (nr, nc) not in water | clay:
                     end = False
                     break
+            # we reach outside of the grid so we discontinue
+            if nr > maxr or nc < mic or nc > mac:
+                if d == 3:
+                    d = 1
+                    r = r + DR[d]
+                    c = c + DC[d]
+                    continue
+                else:
+                    new = True
+                    break
+
             # we can't go anywhere so we only add the single water volume
             if end:
                 water.add((r, c))
@@ -100,6 +136,12 @@ def create_still_water(clay):
                     # not yet seen so we change the boundary point
                     else:
                         lb = (r, c)
+                # we start going down so we add this position as the new
+                # source and continue with the next frame.
+                elif dd == 2:
+                    stack.append((r, c))
+                    new = True
+                    break
                 # if we start going left
                 elif dd == 3:
                     # already seen right boundary so we add the layer
@@ -112,8 +154,11 @@ def create_still_water(clay):
             r = nr
             c = nc
             d = dd
+        if not new:
+            stack.append(s)
 
-    return water
+    print(stack)
+    return set([pos for pos in water if pos[0] <= maxr and mic <= pos[1] <= mac])
 
 
 def create_flow_water(clay, still_water):
@@ -141,7 +186,7 @@ def create_flow_water(clay, still_water):
             time.sleep(0.1)
             show(still_water, visited)
 
-    return set([pos for pos in visited if pos[0] <= maxr])
+    return set([pos for pos in visited if pos[0] <= maxr and mic <= pos[1] <= mac])
 
 
 # unfixable
@@ -178,6 +223,8 @@ def p1():
     still_water = create_still_water(clay)
     flow_water = create_flow_water(clay, still_water)
     show(still_water, flow_water)
+    print('still:', len(still_water))
+    print('flow:', len(flow_water))
     print(len(still_water) + len(flow_water))
 
 p1()
