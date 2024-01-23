@@ -1,12 +1,24 @@
+"""Potential new idea:
+
+1. recursively create a stack for as long as we can move down.
+2. When we change direction from either left or right to down:
+3. Add a new source to the higher level source stack.
+4. if the current source ends up in the visited: continue with the inner stack
+
+6 nvfm: we again have the same problem of ending up in flowing water and
+    breaking: TODO: think about solution between still water and flowing water
+    in dfs/bfs appoach.
+
+"""
+
 import sys
 sys.path.append('..')
 import my_parser as p
 import re
 from collections import deque
-sys.setrecursionlimit(40)
-import time
+import heapq
 
-L = p.input_as_lines('inputs/inp.txt')
+L = p.input_as_lines('inputs/test1.txt')
 
 clay = set()
 verbose = 0
@@ -33,13 +45,13 @@ mic, mac = min(c), max(c)
 
 
 def show(still_water=[], flow_water=[]):
-    print(' ', end='')
-    for i in range(max(450, mic), min(550, mac + 1)):
-        i = str(i)
-        print(i[-1], end='')
-    print()
+    # print(' ', end='')
+    # for i in range(max(450, mic), min(550, mac + 1)):
+    #     i = str(i)
+    #     print(i[-1], end='')
+    # print()
     for r in range(0, min(100, maxr + 1)):
-        print(str(r)[-1], end='')
+        # print(str(r)[-1], end='')
         for c in range(max(450, mic), min(550, mac + 1)):
             if (r, c) == source:
                 print('+', end='')
@@ -61,7 +73,6 @@ DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
 
-source = (0, 500)
 
 # 1. fill up the first bucket using the normal source method (granted pretty
 # slow since we have to keep going down pretty far if we are high up)
@@ -160,6 +171,65 @@ def create_still_water(clay):
     print(stack)
     return set([pos for pos in water if pos[0] <= maxr and mic <= pos[1] <= mac])
 
+# continues in the current dir until either we can't or we can go down
+def cont(r, c, d, taken):
+    for dd in [2, d]:
+        nr = r + DR[dd]
+        nc = c + DC[dd]
+        if (nr, nc) not in taken:
+            if dd == 2:
+                return 2
+            elif dd == d:
+                return 1
+    return 0
+
+
+# looking good so far, I think this might become the solution
+source = (0, 500)
+def solve_still(clay):
+    visited = set()
+    sources = set(source)
+    source_q = [(-source[0], -source[1])]
+    for sq in range(10):
+    # while source_q:
+        # print(len(visited))
+        show([(-s[0], -s[1]) for s in source_q])
+        s = heapq.heappop(source_q)
+        rs, cs = -s[0], -s[1]
+        if rs > maxr or cs < mic or cs > mac:
+            # print('source {} discontinued'.format((rs, cs)))
+            continue
+        fill_stack = [(rs, cs, 2)]
+        while fill_stack:
+
+            r, c, d = fill_stack.pop()
+
+
+            if d != 2:
+                start = (r - DR[d], c - DC[d])
+                hor = set([(r, c)])
+                var = cont(r, c, d, clay | visited)
+                while var == 1:
+                    r = r + DR[d]
+                    c = c + DC[d]
+                    hor.add((r, c))
+                    var = cont(r, c, d, clay | visited)
+                if var == 2:
+                    if (r, c) not in sources:
+                        heapq.heappush(source_q, (-r, -c))
+                        sources.add((r, c))
+                elif var == 0:
+                    visited |= hor
+                    visited.add(start)
+
+            else:
+                for dd in [2, 3, 1][::-1]:
+                    nr = r + DR[dd]
+                    nc = c + DC[dd]
+                    if (nr, nc) not in clay | visited and nr < maxr and mic < nc < mac:
+                        fill_stack.append((nr, nc, dd))
+    return visited
+
 
 def create_flow_water(clay, still_water):
     flow_water = []
@@ -189,38 +259,11 @@ def create_flow_water(clay, still_water):
     return set([pos for pos in visited if pos[0] <= maxr and mic <= pos[1] <= mac])
 
 
-# unfixable
-def still_stack(clay):
-    visited = set()
-    # while True:
-    for layer in range(6):
-        stack = [(source[0], source[1])]
-        while stack:
-            show(visited)
-            r, c = stack.pop()
-            if r > maxr or c < mic or c > mac:
-                return visited
-            dd = 2
-            nr = r + DR[dd]
-            nc = c + DC[dd]
-            # we can go down so we just go down
-            if (nr, nc) not in clay | visited and (nr, nc) not in stack:
-                stack.append((nr, nc))
-                continue
-            else:
-                for dd in [3, 1][::-1]:
-                    nr = r + DR[dd]
-                    nc = c + DC[dd]
-                    if (nr, nc) not in clay | visited and (nr, nc) not in stack:
-                        visited.add((nr, nc))
-                        stack.append((nr, nc))
-
-
 def p1():
     # still_water = still_stack(clay)
     # show(still_water)
 
-    still_water = create_still_water(clay)
+    still_water = solve_still(clay)
     flow_water = create_flow_water(clay, still_water)
     show(still_water, flow_water)
     print('still:', len(still_water))
