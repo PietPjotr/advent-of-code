@@ -1,24 +1,16 @@
-# final idea:
-#
-#   'beacon scanning' for still water:
-#       first drop layer by layer using one beacon.
-#       whenever we start going left or right, we check if we have already have a
-#       left/right 'boundary' position, if not we store the current pos as the
-#       right/left boundary position, else we fill all the positions between the
-#       right and left boundary positions
-#
-#   obligatory bfs 'custom flood fill' for the non still water volumes
 import sys
 sys.path.append('..')
 import my_parser as p
 import re
 from collections import deque
-sys.setrecursionlimit(30)
+sys.setrecursionlimit(40)
+import time
 
-L = p.input_as_lines('inputs/test.txt')
+L = p.input_as_lines('inputs/test2.txt')
 
 clay = set()
 source = (0, 500)
+verbose = 0
 
 for l in L:
     a, b = l.split(', ')
@@ -35,14 +27,14 @@ for l in L:
 
 
 r = [el[0] for el in clay]
-mir, mar = min(r), max(r)
+mir, maxr = min(r), max(r)
 
 c = [el[1] for el in clay]
 mic, mac = min(c), max(c)
 
 
 def show(still_water=[], flow_water=[]):
-    for r in range(0, min(100, mar + 1)):
+    for r in range(0, min(100, maxr + 1)):
         for c in range(max(450, mic), min(550, mac + 1)):
             if (r, c) == source:
                 print('+', end='')
@@ -64,19 +56,20 @@ DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
 
-# wrong, only walks off the left side off a overflown bucket
+# to update: change source whenever we can start going down, and start dropping
+# layers from there, do that to/from both sides: right and left.
 def create_still_water(clay):
     water = set()
     i = 0
-    for layer in range(52):
-    # while True:
+    # for layer in range(52):
+    while True:
         r, c = source
         d = 2
         rb = None
         lb = None
         li = 0
         while True:
-            if r > mar:
+            if r > maxr:
                 return water
             if d == 2:
                 dds = [2, 3, 1]
@@ -120,7 +113,6 @@ def create_still_water(clay):
             c = nc
             d = dd
 
-        i += 1
     return water
 
 
@@ -130,7 +122,7 @@ def create_flow_water(clay, still_water):
     visited = set()
     while queue:
         r, c = queue.popleft()
-        if r > mar + 1:
+        if r > maxr + 1:
             break
         dd = 2  # check if we can go down:
         nr = r + DR[dd]
@@ -145,27 +137,44 @@ def create_flow_water(clay, still_water):
                 if (nr, nc) not in still_water | clay and (nr, nc) not in visited:
                     queue.append((nr, nc))
                     visited.add((nr, nc))
+        if verbose:
+            time.sleep(0.1)
+            show(still_water, visited)
 
-    return set([pos for pos in visited if pos[0] <= mar])
+    return set([pos for pos in visited if pos[0] <= maxr])
 
 
-def still_rec(clay, water, r, c, d):
-    show(water)
-    if r > mar + 1:
-        return
-
-    for dd in [2, 3, 1]:
-        nr = r + DR[dd]
-        nc = c + DC[dd]
-        if (nr, nc) not in water | clay:
-            water.add((nr, nc))
-            still_rec(clay, water, nr, nc, dd)
-    return
+# unfixable
+def still_stack(clay):
+    visited = set()
+    # while True:
+    for layer in range(6):
+        stack = [(source[0], source[1])]
+        while stack:
+            show(visited)
+            r, c = stack.pop()
+            if r > maxr or c < mic or c > mac:
+                return visited
+            dd = 2
+            nr = r + DR[dd]
+            nc = c + DC[dd]
+            # we can go down so we just go down
+            if (nr, nc) not in clay | visited and (nr, nc) not in stack:
+                stack.append((nr, nc))
+                continue
+            else:
+                for dd in [3, 1][::-1]:
+                    nr = r + DR[dd]
+                    nc = c + DC[dd]
+                    if (nr, nc) not in clay | visited and (nr, nc) not in stack:
+                        visited.add((nr, nc))
+                        stack.append((nr, nc))
 
 
 def p1():
-    # still_water = set()
-    # still_water = still_rec(clay,still_water, *source, 2)
+    # still_water = still_stack(clay)
+    # show(still_water)
+
     still_water = create_still_water(clay)
     flow_water = create_flow_water(clay, still_water)
     show(still_water, flow_water)
