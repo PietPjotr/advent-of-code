@@ -18,7 +18,7 @@ import re
 from collections import deque
 import heapq
 
-L = p.input_as_lines('inputs/test1.txt')
+L = p.input_as_lines('inputs/test.txt')
 
 clay = set()
 verbose = 0
@@ -73,23 +73,6 @@ DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
 
-
-# 1. fill up the first bucket using the normal source method (granted pretty
-# slow since we have to keep going down pretty far if we are high up)
-# 2. Detect when we start going down from going either left or right
-# 3. Add those detected positions as new sources to the stack
-# 4. Discontinue a stack frame if any position reaches below the maxr
-
-# NOTE: problem: buckets inside of buckets: we don't go back up the source
-# stack to start dropping from higher up, so maybe we could do that? Keep a
-# stack of source coords and if the current source end up in the water/visited
-# set, we simply go back to the previous source coord? Might be tricky though
-# since now we just keep adding the current source if there are no break
-# conditions so we might need to change that also *shrug*.
-# another thing, maybe there is a better way to add sources both from the left
-# and right when overflowing, but we might get back to the same problem that is
-# how do we backtrack if we just add all the sources at every intersection?
-# idk this shit's crazy
 def create_still_water(clay):
     water = set()
     stack = [source]
@@ -193,7 +176,6 @@ def solve_still(clay):
     for sq in range(10):
     # while source_q:
         # print(len(visited))
-        show([(-s[0], -s[1]) for s in source_q])
         s = heapq.heappop(source_q)
         rs, cs = -s[0], -s[1]
         if rs > maxr or cs < mic or cs > mac:
@@ -201,6 +183,7 @@ def solve_still(clay):
             continue
         fill_stack = [(rs, cs, 2)]
         while fill_stack:
+            # show(visited, [(-s[0], -s[1]) for s in source_q])
 
             r, c, d = fill_stack.pop()
 
