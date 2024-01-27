@@ -14,6 +14,7 @@ G = {}
 
 s = (0, 0)
 
+
 def create_graph(directions, G):
     stack = []
     r, c = (0, 0)
@@ -40,6 +41,7 @@ def create_graph(directions, G):
             r = nr
             c = nc
         i += 1
+
 
 create_graph(L, G)
 
