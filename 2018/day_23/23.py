@@ -26,43 +26,51 @@ def p1():
 
 p1()
 
-# ds = []
-# for i, b1 in enumerate(bots):
-#     for b2 in bots[i + 1:]:
-#         d = distance(b1, b2)
-#         ds.append(d)
 
-# mind = min(ds)
-
-def p2():
-    xs, ys, zs, rs = [], [], [], []
-    for b in bots:
-        xs.append(b[0])
-        ys.append(b[1])
-        zs.append(b[2])
-        rs.append(b[3])
-
-    minx, maxx = min(xs), max(xs)
-    miny, maxy = min(ys), max(ys)
-    minz, maxz = min(zs), max(zs)
-    minr, maxr = min(rs), max(rs)
+def inside_of(bots, point):
+    inside = 0
+    for bot in bots:
+        if sum([abs(bot[i] - point[i]) for i in range(3)]) <= bot[-1]:
+            inside += 1
+    return inside
 
 
-    def show_dimension(mind, maxd, d):
-        insides = []
-        for val in np.linspace(mind, maxd + 1, 100):
-            inside = 0
-            for bot in bots:
-                if abs(bot[d] - val) <= bot[-1]:
-                    inside += 1
-            insides.append(inside)
+# try some maximization over all dimensions by slowly decreasing the range
+# every time, for some reason this works when only using 1 point per dimension
+# per range decrease
+# NOTE: there is a chance that the no_points or fraction variables need some
+# tinkering per input, no_points higher or more importantly: fraction higher:
+# but still between 1 and 0, otherwise the code will not terminate
+def p2(bots):
+    a = 10**8
+    point = [0, 0, 0]
+    inside = 0
+    no_points = 2
+    fraction = 0.9
+    # as long as the range that we consider is greater than 0
+    while a > 0:
 
-        plt.plot(insides)
-        plt.show()
+        # loop over every dimension
+        for d in range(3):
+            best = -1
 
-    show_dimension(minx, maxx, 0)
-    show_dimension(miny, maxy, 1)
-    show_dimension(minz, maxz, 2)
+            # loop over no_points within the range of the current dimension point
+            for nd in range(-a + point[d], a + point[d] + 1, max(1, int(2 * a / no_points))):
+                npoint = point.copy()
+                npoint[d] = nd
+                ninside = inside_of(bots, npoint)
 
-p2()
-# def hope():
+                if ninside > inside or (ninside == inside and nd < point[d]):
+                    best = nd
+                    inside = ninside
+
+            if best != -1:
+                point[d] = best
+
+        # decrease the range
+        a = int(fraction * a)
+
+    print(sum([abs(point[i]) for i in range(3)]))
+
+
+p2(bots)
