@@ -1,30 +1,17 @@
-"""Potential new idea:
-
-1. recursively create a stack for as long as we can move down.
-2. When we change direction from either left or right to down:
-3. Add a new source to the higher level source stack.
-4. if the current source ends up in the visited: continue with the inner stack
-
-6 nvfm: we again have the same problem of ending up in flowing water and
-    breaking: TODO: think about solution between still water and flowing water
-    in dfs/bfs appoach.
-
-"""
-
 import sys
-sys.path.append('..')
 import my_parser as p
 import re
-from collections import deque
-import heapq
+import numpy as np
+import matplotlib.pyplot as plt
+sys.path.append('..')
+
 
 L = p.input_as_lines('inputs/test.txt')
 
 clay = set()
-verbose = 0
 
-for l in L:
-    a, b = l.split(', ')
+for line in L:
+    a, b = line.split(', ')
     if a[0] == 'x':
         c = int(a[2:])
         start, end = [int(el) for el in re.findall(r'-?\d+', b)]
@@ -37,35 +24,11 @@ for l in L:
             clay.add((r, c))
 
 
-r = [el[0] for el in clay]
-mir, maxr = min(r), max(r)
+rs = [el[0] for el in clay]
+minr, maxr = min(rs), max(rs)
 
-c = [el[1] for el in clay]
-mic, mac = min(c), max(c)
-
-
-def show(still_water=[], flow_water=[]):
-    # print(' ', end='')
-    # for i in range(max(450, mic), min(550, mac + 1)):
-    #     i = str(i)
-    #     print(i[-1], end='')
-    # print()
-    for r in range(0, min(100, maxr + 1)):
-        # print(str(r)[-1], end='')
-        for c in range(max(450, mic), min(550, mac + 1)):
-            if (r, c) == source:
-                print('+', end='')
-            elif (r, c) in clay:
-                print('#', end='')
-            elif (r, c) in still_water:
-                print('~', end='')
-            elif (r, c) in flow_water:
-                print('|', end= '')
-            else:
-                print('.', end='')
-        print()
-    print()
-
+cs = [el[1] for el in clay]
+minc, maxc = min(cs), max(cs)
 
 # up right down left
 # 0, 1,    2,   3
@@ -73,184 +36,143 @@ DR = [-1, 0, 1, 0]
 DC = [0, 1, 0, -1]
 
 
-def create_still_water(clay):
-    water = set()
-    stack = [source]
-    for sf in range(70):
-    # while stack:
-        print(len(water))
-        s = stack.pop()
-        r, c = s
-        if r > maxr or c < mic or c > mac:
-            # print('source {} discontinued'.format(s))
-            continue
-        d = 2
-        rb = None
-        lb = None
-        li = 0
-        new = False
-        while True:
-            if d == 2:
-                dds = [2, 3, 1]
-            elif d == 3:
-                dds = [2, 3, 1]
-            elif d == 1:
-                dds = [2, 1, 3]
-
-            end = True
-            for dd in dds:
-                nr = r + DR[dd]
-                nc = c + DC[dd]
-                if (nr, nc) not in water | clay:
-                    end = False
-                    break
-            # we reach outside of the grid so we discontinue
-            if nr > maxr or nc < mic or nc > mac:
-                if d == 3:
-                    d = 1
-                    r = r + DR[d]
-                    c = c + DC[d]
-                    continue
-                else:
-                    new = True
-                    break
-
-            # we can't go anywhere so we only add the single water volume
-            if end:
-                water.add((r, c))
-                break
-            # if we start going a different direction
-            if dd != d:
-                # if we start going right
-                if dd == 1:
-                    # already seen so we add the layer
-                    if (r, c) == lb:
-                        for c in range(lb[1], rb[1] + 1):
-                            water.add((r, c))
-                    # not yet seen so we change the boundary point
-                    else:
-                        lb = (r, c)
-                # we start going down so we add this position as the new
-                # source and continue with the next frame.
-                elif dd == 2:
-                    stack.append((r, c))
-                    new = True
-                    break
-                # if we start going left
-                elif dd == 3:
-                    # already seen right boundary so we add the layer
-                    if (r, c) == rb:
-                        for c in range(lb[1], rb[1] + 1):
-                            water.add((r, c))
-                    # not yet seen right boundary so we update the boundary
-                    else:
-                        rb = (r, c)
-            r = nr
-            c = nc
-            d = dd
-        if not new:
-            stack.append(s)
-
-    print(stack)
-    return set([pos for pos in water if pos[0] <= maxr and mic <= pos[1] <= mac])
-
 # continues in the current dir until either we can't or we can go down
+# returns 0 if we cannot go down
+# returns 1 if we can go down at any point
 def cont(r, c, d, taken):
-    for dd in [2, d]:
-        nr = r + DR[dd]
-        nc = c + DC[dd]
-        if (nr, nc) not in taken:
-            if dd == 2:
-                return 2
-            elif dd == d:
+    r += DR[d]
+    c += DC[d]
+    while (r, c) not in taken:
+        rd = r + DR[2]
+        cd = c + DC[2]
+        if (rd, cd) not in taken:
+            return 1, (rd, cd)
+        else:
+            r = r + DR[d]
+            c = c + DC[d]
+
+    return 0, (r, c)
+
+
+def inside(pos):
+    r, c = pos
+    return r >= minr and r <= maxr
+
+
+source = (0, 500)
+visited_sources = set()
+
+
+def solve(source, clay, still, flowing):
+
+    visited_sources.add(source)
+    rs, cs = source
+    rd, cd = source
+
+    hor_stack = []
+    # first build the stack horizontally:
+    while (rd, cd) not in still | clay and rd <= maxr + 1:
+        hor_stack.append((rd, cd))
+        rd = rd + DR[2]
+        cd = cd + DC[2]
+
+    while hor_stack:
+        r, c = hor_stack.pop()
+        # we are done on this branch
+        if r > maxr:
+            # add vertical flowing water
+            for nr in range(rs, maxr + 1):
+                flowing.add((nr, c))
+            return 1
+        left = cont(r, c, 3, still | clay)
+        right = cont(r, c, 1, still | clay)
+
+        # we have overflown the current bucket
+        if left[0] == 1 or right[0] == 1:
+
+            # add vertical flowing water
+            for nr in range(rs, r + 1):
+                flowing.add((nr, c))
+            # add horizontal flowing water:
+            for nc in range(left[1][1], right[1][1] + 1):
+                flowing.add((r, nc))
+
+            rr, rl = 0, 0
+            if left[0] == 1:
+                if left[1] not in visited_sources and inside(left[1]):
+                    rl = solve(left[1], clay, still, flowing)
+                else:
+                    rl = 1
+            if right[0] == 1:
+                if right[1] not in visited_sources and inside(right[1]):
+                    rr = solve(right[1], clay, still, flowing)
+                else:
+                    rr = 1
+            if rr == 1 or rl == 1:
                 return 1
+            else:
+                hor_stack.append((r, c))
+
+        else:
+            for ret in [left, right]:
+                code, pos = ret
+                # reached the end to either left or right
+                if code == 0:
+                    rf, cf = pos
+                    for nc in range(min(cs, cf), max(cs, cf)):
+                        if (r, nc) not in clay:
+                            still.add((r, nc))
+
     return 0
 
 
-# looking good so far, I think this might become the solution
-source = (0, 500)
-def solve_still(clay):
-    visited = set()
-    sources = set(source)
-    source_q = [(-source[0], -source[1])]
-    for sq in range(10):
-    # while source_q:
-        # print(len(visited))
-        s = heapq.heappop(source_q)
-        rs, cs = -s[0], -s[1]
-        if rs > maxr or cs < mic or cs > mac:
-            # print('source {} discontinued'.format((rs, cs)))
-            continue
-        fill_stack = [(rs, cs, 2)]
-        while fill_stack:
-            # show(visited, [(-s[0], -s[1]) for s in source_q])
+def visualize_grid(clay, still_water, flow_water):
+    # Determine grid dimensions
+    minr = min(r for r, _ in clay | still_water | flow_water)
+    maxr = max(r for r, _ in clay | still_water | flow_water)
+    minc = min(c for _, c in clay | still_water | flow_water)
+    maxc = max(c for _, c in clay | still_water | flow_water)
 
-            r, c, d = fill_stack.pop()
+    # Create an array to represent the grid
+    grid = np.zeros((maxr - minr + 3, maxc - minc + 3))
 
+    # Mark clay
+    for r, c in clay:
+        grid[r - minr + 1, c - minc + 1] = 1
 
-            if d != 2:
-                start = (r - DR[d], c - DC[d])
-                hor = set([(r, c)])
-                var = cont(r, c, d, clay | visited)
-                while var == 1:
-                    r = r + DR[d]
-                    c = c + DC[d]
-                    hor.add((r, c))
-                    var = cont(r, c, d, clay | visited)
-                if var == 2:
-                    if (r, c) not in sources:
-                        heapq.heappush(source_q, (-r, -c))
-                        sources.add((r, c))
-                elif var == 0:
-                    visited |= hor
-                    visited.add(start)
+    # Mark still water
+    for r, c in still_water:
+        grid[r - minr + 1, c - minc + 1] = 2
 
-            else:
-                for dd in [2, 3, 1][::-1]:
-                    nr = r + DR[dd]
-                    nc = c + DC[dd]
-                    if (nr, nc) not in clay | visited and nr < maxr and mic < nc < mac:
-                        fill_stack.append((nr, nc, dd))
-    return visited
+    # Mark flowing water
+    for r, c in flow_water:
+        grid[r - minr + 1, c - minc + 1] = 3
+
+    # Plot the grid
+    plt.imshow(grid, cmap='viridis', interpolation='nearest')
+    plt.colorbar(ticks=[0, 1, 2, 3], label='0: Empty, 1: Clay, 2: Still Water, 3: Flowing Water')
+    plt.xlabel('Column')
+    plt.ylabel('Row')
+    plt.title('Water Flow Visualization')
+    plt.show()
 
 
-def create_flow_water(clay, still_water):
-    flow_water = []
-    queue = deque([(source[0], source[1])])
-    visited = set()
-    while queue:
-        r, c = queue.popleft()
-        if r > maxr + 1:
-            break
-        dd = 2  # check if we can go down:
-        nr = r + DR[dd]
-        nc = c + DC[dd]
-        if (nr, nc) not in clay | still_water and (nr, nc) not in visited:
-            queue.append((nr, nc))
-            visited.add((nr, nc))
-        else:
-            for dd in [1, 3]:
-                nr = r + DR[dd]
-                nc = c + DC[dd]
-                if (nr, nc) not in still_water | clay and (nr, nc) not in visited:
-                    queue.append((nr, nc))
-                    visited.add((nr, nc))
-        if verbose:
-            time.sleep(0.1)
-            show(still_water, visited)
+# takes about 40 seconds to complete for both parts
+def main():
+    still = set()
+    flowing = set()
+    solve(source, clay, still, flowing)
 
-    return set([pos for pos in visited if pos[0] <= maxr and mic <= pos[1] <= mac])
+    # remove all duplicates
+    flowing -= still
+    flowing -= clay
+    # remove all out of bounds
+    flowing = set([el for el in flowing if inside(el)])
+
+    print(len(still) + len(flowing))
+    print(len(still))
+
+    # visualize_grid(clay, still, flowing)
 
 
-def p1():
-    # still_water = still_stack(clay)
-    # show(still_water)
-
-    still_water = solve_still(clay)
-    flow_water = create_flow_water(clay, still_water)
-    show(still_water, flow_water)
-    print('still:', len(still_water))
-    print('flow:', len(flow_water))
-    print(len(still_water) + len(flow_water))
-
-p1()
+main()
