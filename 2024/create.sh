@@ -30,7 +30,7 @@ echo "import sys
 sys.path.append('..')
 import my_parser as p
 
-L = p.input_as_lines('inputs/test.txt')
+L = p.input_as_lines('inputs/inp.txt')
 G = p.input_as_grid('inputs/inp.txt')
 R = len(G)
 C = len(G[0])" >> "$python_file"

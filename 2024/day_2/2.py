@@ -23,8 +23,8 @@ for l in G:
         p2 += 1
 
 
-# print(p1)
-# print(p2)
+print(p1)
+print(p2)
 
 
 # one liners cus I have no life
