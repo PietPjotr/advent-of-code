@@ -30,6 +30,8 @@ echo "import sys
 sys.path.append('..')
 import my_parser as p
 
+from collections import defaultdict
+
 L = p.input_as_lines('inputs/inp.txt')
 G = p.input_as_grid('inputs/inp.txt')
 R = len(G)
