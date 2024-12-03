@@ -18,7 +18,8 @@ def input_as_lines(filename: str) -> List[str]:
 
 
 def input_as_ints(filename: str) -> List[int]:
-    """Return a list where each line in the input file is an element of the list, converted into an integer"""
+    """Return a list where each line in the input file is an element of the list,
+    converted into an integer"""
     lines = input_as_lines(filename)
     def line_as_int(l): return int(l.rstrip('\n'))
     return list(map(line_as_int, lines))
