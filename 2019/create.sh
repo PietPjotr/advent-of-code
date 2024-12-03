@@ -31,9 +31,7 @@ sys.path.append('..')
 import my_parser as p
 
 L = p.input_as_lines('inputs/inp.txt')
-# ints = p.input_as_ints('inputs/inp.txt')
-
-G = G = [[el for el in line] for line in L]
+G = p.input_as_grid('inputs/inp.txt')
 R = len(G)
 C = len(G[0])" >> "$python_file"
 
