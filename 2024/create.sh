@@ -29,8 +29,11 @@ touch "$python_file"
 echo "import sys
 sys.path.append('..')
 import my_parser as p
-
 from collections import defaultdict
+
+dirs = [(-1, -1), (-1, 0), (-1, 1),
+        ( 0, -1),          ( 0, 1),
+        ( 1, -1), ( 1, 0), ( 1, 1),]
 
 L = p.input_as_lines('inputs/inp.txt')
 G = p.input_as_grid('inputs/inp.txt')
