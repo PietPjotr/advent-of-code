@@ -37,6 +37,7 @@ dirs = [
     ( 1, -1), ( 1, 0), ( 1, 1),
 ]
 
+S = p.input_as_string('inputs/inp.txt')
 L = p.input_as_lines('inputs/inp.txt')
 G = p.input_as_grid('inputs/inp.txt')
 R = len(G)

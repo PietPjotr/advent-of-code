@@ -3,16 +3,7 @@ sys.path.append('..')
 import my_parser as p
 from collections import defaultdict
 
-dirs = [
-    (-1, -1), (-1, 0), (-1, 1),
-    ( 0, -1),          ( 0, 1),
-    ( 1, -1), ( 1, 0), ( 1, 1),
-    ]
-
 L = p.input_as_lines('inputs/inp.txt')
-# G = p.input_as_grid('inputs/inp.txt')
-# R = len(G)
-# C = len(G[0])
 
 s = 1176
 # s = 21
@@ -52,7 +43,6 @@ def check_correct(ins):
 
 res = 0
 for ins in inss:
-    og_ins = ins.copy()
     not_correct = False
     while not (check_correct(ins)):
         not_correct = True

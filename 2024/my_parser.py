@@ -36,7 +36,7 @@ def input_as_multigrids(lines: List[str], row: int) -> List[List[List[int]]]:
     return grids
 
 
-def input_as_grid(filename: str) -> List[List[int]]:
+def input_as_grid(filename: str) -> List[List[str]]:
     lines = input_as_lines(filename)
     return [[x for x in line] for line in lines]
 
