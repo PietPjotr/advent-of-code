@@ -29,7 +29,6 @@ for start_pos in start_positions:
 
         if G[r][c] == 9:
             p1 += 1
-            continue
 
         for dr, dc in dirs:
             nr, nc = r + dr, c + dc
@@ -49,7 +48,6 @@ for start_pos in start_positions:
 
         if G[r][c] == 9:
             p2 += 1
-            continue
 
         for dr, dc in dirs:
             nr, nc = r + dr, c + dc
