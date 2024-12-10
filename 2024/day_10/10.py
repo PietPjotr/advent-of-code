@@ -10,17 +10,17 @@ C = len(G[0])
 
 G = [[int(el) for el in r] for r in G]
 
-ss = []
+start_positions = []
 
 for r in range(R):
     for c in range(C):
         if G[r][c] == 0:
-            ss.append((r, c))
+            start_positions.append((r, c))
 
 # p1
 dirs = [(-1, 0),(0, -1), (0, 1), (1, 0)]
 p1 = 0
-for start_pos in ss:
+for start_pos in start_positions:
     stack = [start_pos]
     visited = set()
     while stack:
@@ -42,7 +42,7 @@ print(p1)
 # p2
 dirs = [(-1, 0),(0, -1), (0, 1), (1, 0)]
 p2 = 0
-for start_pos in ss:
+for start_pos in start_positions:
     stack = [start_pos]
     while stack:
         r, c = stack.pop()
