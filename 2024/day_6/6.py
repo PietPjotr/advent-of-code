@@ -35,46 +35,44 @@ while True:
     elif G[nr][nc] == '#':
         i_dir += 1
 
-print("p1:", len(visited))
+print(len(visited))
 
 p2 = 0
 loop_pos = set()
-for rl in range(R):
-    for cl in range(C):
-        if G[rl][cl] != '#':
-            temp = G[rl][cl]
-            G[rl][cl] = '#'
+for rl, cl in visited:
+    if G[rl][cl] != '#':
+        temp = G[rl][cl]
+        G[rl][cl] = '#'
+    else:
+        continue
+
+    visited = set()
+    collapsed = set((spos[0], spos[1], -1, 0))
+
+    r, c = spos
+    visited.add(spos)
+    i_dir = 0
+    while True:
+        dr, dc = dirs[i_dir % 4]
+        nr = r + dr
+        nc = c + dc
+        key = (r, c, dr, dc)
+
+        if key in collapsed:
+            loop_pos.add((rl ,cl))
+            p2 += 1
+            break
         else:
-            continue
+            collapsed.add(key)
 
-        visited = set()
-        collapsed = set((spos[0], spos[1], -1, 0))
+        if not (0 <= nr < R and 0 <= nc < C):
+            break
+        if G[nr][nc] != '#':
+            r, c = nr, nc
+            visited.add((nr, nc))
+        elif G[nr][nc] == '#':
+            i_dir += 1
 
-        r, c = spos
-        visited.add(spos)
-        i_dir = 0
-        while True:
-            dr, dc = dirs[i_dir % 4]
-            nr = r + dr
-            nc = c + dc
-            key = (r, c, dr, dc)
+    G[rl][cl] = temp
 
-            if key in collapsed:
-                loop_pos.add((rl ,cl))
-                p2 += 1
-                break
-            else:
-                collapsed.add(key)
-
-            if not (0 <= nr < R and 0 <= nc < C):
-                break
-            if G[nr][nc] != '#':
-                r, c = nr, nc
-                visited.add((nr, nc))
-            elif G[nr][nc] == '#':
-                i_dir += 1
-
-        G[rl][cl] = temp
-    print(f'{round(rl / len(G), 4) * 100}%')
-
-print("p2:", p2)
+print(p2)
