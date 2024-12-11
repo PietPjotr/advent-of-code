@@ -1,14 +1,13 @@
 import sys
 sys.path.append('..')
 import my_parser as p
-from collections import Counter
 
 
 S = p.input_as_string('inputs/inp.txt')
 stones = [int(el) for el in S.strip().split()]
 memo = {}
 
-# recursively implements the iterative method to impement memoization
+# recursively implements the iterative method to implement memoization
 def simulate(stone, iterations):
     if (stone, iterations) in memo:
         return memo[(stone, iterations)]
