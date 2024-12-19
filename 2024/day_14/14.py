@@ -51,6 +51,7 @@ def find_christmas_tree(bots):
                     return it + 100  # already start with 100 iterations a
 
 
+
 def get_quartiles(bots):
     qs = [0, 0, 0, 0]
     for x, y, _, _ in bots:

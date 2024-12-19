@@ -1,12 +1,12 @@
 import sys
+sys.path.append('..')
 import my_parser as p
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-sys.path.append('..')
 
 
-L = p.input_as_lines('inputs/test.txt')
+L = p.input_as_lines('inputs/inp.txt')
 
 clay = set()
 
@@ -172,7 +172,7 @@ def main():
     print(len(still) + len(flowing))
     print(len(still))
 
-    # visualize_grid(clay, still, flowing)
+    visualize_grid(clay, still, flowing)
 
 
 main()
