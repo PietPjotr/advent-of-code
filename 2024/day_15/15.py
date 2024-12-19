@@ -4,10 +4,9 @@ import my_parser as p
 from collections import defaultdict
 
 # left up right down
-dirs = [
-    (0, -1), (-1, 0), (0, 1), (1, 0),
-]
-arrows = ['<','^', '>', 'v']
+DIRS = [(0, -1), (-1, 0), (0, 1), (1, 0)]
+ARROWS = ['<','^', '>', 'v']
+FILENAME = 'inputs/inp.txt'
 
 
 def load_file(filename):
@@ -42,10 +41,10 @@ def score1(G, R, C):
 
 
 def p1():
-    G, inss, R, C = load_file('inputs/inp.txt')
+    G, inss, R, C = load_file(FILENAME)
     r, c  = get_startpos(G, R, C)
     for ins in inss:
-        dr, dc = dirs[arrows.index(ins)]
+        dr, dc = DIRS[ARROWS.index(ins)]
         nr, nc = r + dr, c + dc
 
         if G[nr][nc] == '.':
@@ -66,110 +65,66 @@ def p1():
                 r, c = nr, nc
         elif G[nr][nc] == '#':
             continue
+
     print(score1(G, R, C))
 
 
-# p1()
+p1()
 
 
 def update_grid(G, R, C):
-    # alter the map
-    r = 0
-    for _ in range(R):
-        c = 0
-        for _ in range(C):
-            if G[r][c] == '#':
-                G[r].insert(c + 1, '#')
-            elif G[r][c] == 'O':
-                G[r][c] = '['
-                G[r].insert(c + 1, ']')
-            elif G[r][c] == '.':
-                G[r].insert(c + 1, '.')
-            elif G[r][c] == '@':
-                G[r].insert(c + 1, '.')
-            c += 2
-        r += 1
-    R = len(G)
-    C = len(G[0])
-    return G, R, C
+    grid_str = ''.join(''.join(row) for row in G)
+
+    grid_str = (grid_str
+                .replace('#', '##')
+                .replace('O', '[]')
+                .replace('.', '..')
+                .replace('@', '@.'))
+
+    updated_grid = [list(grid_str[2 * C * i: (i + 1) * 2 * C]) for i in range(R)]
+
+    R = len(updated_grid)
+    C = len(updated_grid[0])
+
+    return updated_grid, R, C
 
 
 def step(G, R, C, ins, pos):
     r, c = pos
-    dr, dc = dirs[arrows.index(ins)]
+    dr, dc = DIRS[ARROWS.index(ins)]
     nr, nc = r + dr, c + dc
 
-    def swap(G, r, c, rn, cn):
-        G[r][c], G[rn][cn] = G[rn][cn], G[r][c]
-
-    if G[nr][nc] == '.':
-        swap(G, r, c, nr, nc)
-        return nr, nc
-    elif G[nr][nc] in '[]':
-        # recursive pushing?
-        if ins in '^v':
-            ognr, ognc = nr, nc
-            ogr, ogc = r, c
-            stack = [(nr, nc)]
-            visited = set(stack)
-            while stack:
-                r, c = stack.pop()
-                nr, nc = r + dr, c + dc
+    if G[nr][nc] != '#':
+        ogr, ogc = r, c
+        stack = [(r, c)]
+        visited = set(stack)
+        while stack:
+            r, c = stack.pop()
+            nr, nc = r + dr, c + dc
+            if G[nr][nc] == '#':
+                return ogr, ogc
+            if G[r][c] in '[]':
                 if G[r][c] == '[':
                     addr, addc = r, c + 1
-                    if (addr, addc) not in visited:
-                        stack.append((addr, addc))
-                        visited.add((addr, addc))
-                if G[r][c] == ']':
+                elif G[r][c] == ']':
                     addr, addc = r, c - 1
-                    if (addr, addc) not in visited:
-                        stack.append((addr, addc))
-                        visited.add((addr, addc))
-                if G[nr][nc] in '[]':
-                    stack.append((nr, nc))
-                    visited.add((nr, nc))
-                if G[nr][nc] == '#':
-                    return ogr, ogc
+                if (addr, addc) not in visited:
+                    stack.append((addr, addc))
+                    visited.add((addr, addc))
+            # check next position
+            if G[nr][nc] in '[]' and (nr, nc) not in visited:
+                stack.append((nr, nc))
+                visited.add((nr, nc))
 
-            # we can move the robot and corresponding boxes
-            # change top down
-            if ins == '^':
-                for r, c in sorted(list(visited)):
-                    nr, nc = r - 1, c
-                    G[nr][nc]  = G[r][c]
-                    G[r][c] = '.'
-            # change bottom up
-            elif ins == 'v':
-                for r, c in sorted(list(visited), reverse=True):
-                    nr, nc = r + 1, c
-                    G[nr][nc] = G[r][c]
-                    G[r][c] =  '.'
-            # lastly swap the robot with the new position
-            swap(G, ogr, ogc, ognr, ognc)
-            return ognr, ognc
+        # this method of sorting ensures proper order for updating the visited positions
+        for r, c in sorted(list(visited), key=lambda tup: (-dr * tup[0], -dc * tup[1])):
+            nr, nc = r + dr, c + dc
+            G[nr][nc]  = G[r][c]
+            G[r][c] = '.'
 
-        elif ins in '<>':
-            endr, endc = nr, nc
-            while G[endr][endc] in '[]':
-                endr += dr
-                endc += dc
-            if G[endr][endc] == '#':
-                return r, c
-            else:
-                if ins == '<':
-                    G[r].pop(endc)
-                    G[r].insert(c, '.')
-                    G[r][c] = '.'
-                    G[nr][nc] = '@'
-                else:  # ins == '>':
-                    G[r].pop(endc)
-                    G[r].insert(c, '.')
-                    G[r][c] = '.'
-                    G[nr][nc] = '@'
-                return nr, nc
+        return ogr + dr, ogc + dc
 
-    else: #if G[nr][nc] == '#':
-        return r, c
+    return r, c
 
 
 def score2(G):
@@ -181,13 +136,11 @@ def score2(G):
     return s
 
 
-filename = 'inputs/inp.txt'
-
-G, inss, R, C = load_file(filename)
+G, inss, R, C = load_file(FILENAME)
 G, R, C = update_grid(G, R, C)
 
 r, c = get_startpos(G, R, C)
-for i, ins in enumerate(inss):
+for ins in inss:
     r, c = step(G, R, C, ins, (r, c))
 
 print(score2(G))
