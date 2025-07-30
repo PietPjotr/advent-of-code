@@ -11,21 +11,15 @@ from collections import Counter
 
 codes = p.input_as_lines('inputs/inp.txt')
 
-G1 = """789
-456
-123
-#0A"""
+G1 = """789 456 123 #0A"""
 
-G2 = """#^A
-<v>"""
+G2 = """#^A <v>"""
 
-G1 = [[el for el in line] for line in G1.split('\n')]
-G2 = [[el for el in line] for line in G2.split('\n')]
+G1 = [[el for el in line] for line in G1.split()]
+G2 = [[el for el in line] for line in G2.split()]
 
-G1 = Grid(G1)
-G2 = Grid(G2)
-G1.remove('#')
-G2.remove('#')
+G1 = Grid(G1).remove('#')
+G2 = Grid(G2).remove('#')
 
 
 def get_all_shortest_paths(G, s, e):
@@ -74,7 +68,7 @@ def get_strings_single_push(G, start_char, end_char):
     shortest_paths = get_all_shortest_paths(G, startpos, endpos)
     shortest_strings = [extract_dirs(path) for path in shortest_paths]
 
-    # sort on the above mentioned idea
+    # sort on idea mentioned above; look one iteration further for actual shortest path
     sorting_key = lambda x: sum(Pos.dist(G2.find(a), G2.find(b)) for a, b in zip(x[:-1], x[1:]))
     shortest_strings = sorted(shortest_strings, key=sorting_key)
 

@@ -29,7 +29,7 @@ touch "$python_file"
 echo "import sys
 sys.path.append('..')
 import my_parser as p
-from aoc import *
+from utils import *
 from collections import defaultdict
 
 S = p.input_as_string('inputs/inp.txt')

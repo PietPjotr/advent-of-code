@@ -280,11 +280,13 @@ def get_longest_path(grid: Grid, startpos: Pos, endpos: Pos) -> List[Pos]:
 
 
 def get_all_numbers(string):
-    return [int(el) for el in re.findall(r'-?\d+', string)]
+    nums = [int(el) for el in re.findall(r'-?\d+', string)]
+    return nums[0] if len(nums) == 1 else nums
 
 
 def get_all_digits(string):
-    return [int(el) for el in re.findall(r'-?\d', string)]
+    digs = [int(el) for el in re.findall(r'-?\d', string)]
+    return digs[0] if len(digs) == 1 else digs
 
 
 def slide(list):
