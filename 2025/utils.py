@@ -62,6 +62,18 @@ class Pos:
     def nbs(self) -> List['Pos']:
         return [self + d for d in self.dirs()]
 
+    def north(self) -> 'Pos':
+        return self + Pos(-1, 0)
+
+    def east(self) -> 'Pos':
+        return self + Pos(0, 1)
+
+    def west(self) -> 'Pos':
+        return self + Pos(0, -1)
+
+    def south(self) -> 'Pos':
+        return self + Pos(1, 0)
+
     @staticmethod
     def range(self, other: 'Pos') -> List['Pos']:
         rmin = min(self.r, other.r)
@@ -119,6 +131,11 @@ class Grid:
 
     def __max__(self) -> int:
         return max(*self)
+
+    def copy(self):
+        new_grid = Grid([[' ' for _ in range(self.Cmin, self.Cmax + 1)] for _ in range(self.Rmin, self.Rmax + 1)])
+        new_grid.grid = self.grid.copy()
+        return new_grid
 
     def range(self):
         return Pos(self.Rmin, self.Cmin).range(Pos(self.Rmax, self.Cmax))
