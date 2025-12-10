@@ -6,13 +6,7 @@ import utils as u
 from collections import deque
 
 
-
 def part1(pattern, buttons):
-    """
-    pattern: string like ".##."
-    buttons: list of tuples of ints (already normalized, single ints as 1-tuple)
-    Returns: (min_presses, parity_vector)
-    """
     nlights = len(pattern)
     m = len(buttons)
 
