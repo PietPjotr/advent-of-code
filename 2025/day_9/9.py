@@ -38,7 +38,9 @@ def get_points(one, two):
     return [p1, p2, p3, p4]
 
 
-# in this function i want to check if the lines p1p2 and p3p4 intersect
+# Cache the polygon edges to avoid recomputing them
+polygon_edges = [(cs[i], cs[(i + 1) % len(cs)]) for i in range(len(cs))]
+
 def intersect(p1, p2, p3, p4):
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
@@ -46,17 +48,23 @@ def intersect(p1, p2, p3, p4):
     return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
 
 
-# use raycasting to check if point is inside the polygon
+# Memoize inside() results
+inside_cache = {}
+
 def inside(p, cs):
+    p_tuple = tuple(p)
+    if p_tuple in inside_cache:
+        return inside_cache[p_tuple]
+
     ray_end = (MAXX + 10, p[1] + 0.1)
     intersections = 0
-    for i in range(len(cs)):
-        p1 = cs[i]
-        p2 = cs[(i + 1) % len(cs)]
+    for p1, p2 in polygon_edges:
         if intersect(p, ray_end, p1, p2):
             intersections += 1
 
-    return intersections % 2 == 1
+    result = intersections % 2 == 1
+    inside_cache[p_tuple] = result
+    return result
 
 
 def area(p1, p2):
