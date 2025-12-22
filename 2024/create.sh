@@ -34,9 +34,7 @@ from collections import defaultdict
 
 S = p.input_as_string('inputs/inp.txt')
 L = p.input_as_lines('inputs/inp.txt')
-G = p.input_as_grid('inputs/inp.txt')
-R = len(G)
-C = len(G[0])" >> "$python_file"
+G = p.input_as_grid('inputs/inp.txt')" >> "$python_file"
 
 # Create the 'inputs' directory
 inputs_directory="${main_directory}/inputs"

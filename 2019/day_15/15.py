@@ -1,0 +1,11 @@
+import sys
+sys.path.append('..')
+import my_parser as p
+from utils import *
+from collections import defaultdict
+
+S = p.input_as_string('inputs/inp.txt')
+L = p.input_as_lines('inputs/inp.txt')
+G = p.input_as_grid('inputs/inp.txt')
+R = len(G)
+C = len(G[0])

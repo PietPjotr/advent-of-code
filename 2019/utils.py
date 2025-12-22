@@ -289,6 +289,11 @@ def get_all_digits(string):
     return digs[0] if len(digs) == 1 else digs
 
 
+def get_all_words(string):
+    words = [el for el in re.findall(r'[a-zA-Z]+', string)]
+    return words
+
+
 def slide(list):
     return zip(list[:-1], list[1:])
 

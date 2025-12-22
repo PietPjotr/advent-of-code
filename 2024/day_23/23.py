@@ -4,6 +4,7 @@ import my_parser as p
 from utils import *
 from collections import defaultdict
 import networkx as nx
+import matplotlib.pyplot as plt
 
 L = p.input_as_lines('inputs/inp.txt')
 
@@ -55,3 +56,14 @@ cliques = list(nx.find_cliques(G))
 best = sorted(cliques, key=len, reverse=True)[0]
 
 print(','.join(sorted(best)))
+
+
+def plot(G):
+    pos = nx.spring_layout(G, k=0.15, iterations=20)
+    plt.figure(figsize=(12, 12))
+    nx.draw(G, pos, node_size=30, node_color='blue', with_labels=False, alpha=0.7, edge_color='gray')
+    plt.title('Graph Visualization')
+    plt.show()
+
+
+plot(G)
